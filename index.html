@@ -463,8 +463,9 @@ const save = () => store.set('oche.game', {G, H:H.slice(-80)});
 
 
 /* ---------- Sons et voix ---------- */
-const DEF_TAUNTS = ["{nom}, espèce de merguez !","Floppeur !","{nom}, t'es nul !","Trois fléchettes, zéro point. Bravo la merguez.","Rentre chez toi, {nom}.","Même ma grand-mère fait mieux.","{nom}, tu vises la planche ou le mur ?"];
-const DEF_CHEERS = ["Bien joué {nom} !","Quel tir !","{nom}, la machine !","Magnifique !","Ça c'est du lancer !","Respect {nom} !"];
+const OLD_DEF = ["{nom}, espèce de merguez !","Floppeur !","{nom}, t'es nul !","Trois fléchettes, zéro point. Bravo la merguez.","Rentre chez toi, {nom}.","Même ma grand-mère fait mieux.","{nom}, tu vises la planche ou le mur ?","Bien joué {nom} !","Quel tir !","{nom}, la machine !","Magnifique !","Ça c'est du lancer !","Respect {nom} !"];
+const DEF_TAUNTS = ["Ah non... {nom}, sérieux ?","Mais quelle merguez, ce {nom}...","Floppeur, va !","Bon... on va dire que c'était l'échauffement.","Aïe. Rien. Le néant total.","Oh là là, {nom}... c'est dur à regarder, hein.","{nom}, t'as les yeux ouverts, au moins ?","Ma grand-mère, elle fait mieux. Et elle a quatre-vingt-dix ans.","Allez, {nom}... on respire, et on oublie ça.","Euh... c'était voulu, ça ?"];
+const DEF_CHEERS = ["Ohhh, mais c'est beau, ça !","Ah ouais ! D'accord, {nom} !","Pas mal... pas mal du tout !","Mais qu'est-ce qu'il nous fait, {nom} ?!","Allez, là ! Ça, c'est propre.","Oh la vache, {nom} est chaud ce soir !","Bon, ben... chapeau, {nom}."];
 const PERSO_TAUNTS = [
  "Charles: Charles, même le général de Gaulle visait mieux.",
  "Charles: Charles le Chauve... de points.",
@@ -487,10 +488,14 @@ const PERSO_CHEERS = [
  "Grégoire: Saint Grégoire, priez pour nous, il est en feu !",
  "Simon: Jacques a dit : applaudissez Simon !",
  "Simon: Simon, le patron !"];
-let SET = Object.assign({on:true, voice:true, taunts:[...DEF_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...PERSO_CHEERS].join('\n'), v:2}, store.get('oche.sound',{}));
-if(SET.v!==2){
+let SET = Object.assign({on:true, voice:true, taunts:[...DEF_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...PERSO_CHEERS].join('\n'), v:3}, store.get('oche.sound',{}));
+if(SET.v===2){
+  const fix=(txt,defs)=>{ const keep=String(txt||'').split('\n').filter(l=>l && !OLD_DEF.includes(l)); return [...defs, ...keep.filter(l=>!defs.includes(l))].join('\n'); };
+  SET.taunts=fix(SET.taunts,DEF_TAUNTS); SET.cheers=fix(SET.cheers,DEF_CHEERS); SET.v=3; store.set('oche.sound',SET);
+}
+if(SET.v!==2 && SET.v!==3){
   const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
-  SET.taunts=add(SET.taunts,PERSO_TAUNTS); SET.cheers=add(SET.cheers,PERSO_CHEERS); SET.v=2; store.set('oche.sound',SET);
+  SET.taunts=add(SET.taunts,PERSO_TAUNTS); SET.cheers=add(SET.cheers,PERSO_CHEERS); SET.v=3; store.set('oche.sound',SET);
 }
 const saveSet = () => store.set('oche.sound', SET);
 let AC=null, NB=null;
@@ -582,7 +587,21 @@ function pick(txt, defs, nom){
   if(lines.length>1 && l===lastLine) l=lines[(lines.indexOf(l)+1)%lines.length];
   lastLine=l; return l.replace(/\{nom\}/gi, nom);
 }
-function voiceFor(lang){ try{ const vs=speechSynthesis.getVoices(), re=new RegExp('^'+lang+'[-_]','i'), re2=new RegExp('^'+lang.slice(0,2),'i'); return vs.find(v=>re.test(v.lang)) || vs.find(v=>re2.test(v.lang)); }catch(e){ return null; } }
+function voiceFor(lang){
+  try{
+    const vs=speechSynthesis.getVoices(), two=lang.slice(0,2).toLowerCase();
+    const cand=vs.filter(v=>String(v.lang).toLowerCase().replace('_','-').startsWith(two));
+    if(!cand.length) return null;
+    const score=v=>{ const n=v.name.toLowerCase(), l=String(v.lang).toLowerCase().replace('_','-'); let x=0;
+      if(l===lang.toLowerCase()) x+=4;
+      if(/premium|enhanced|amélioré|ameliore|natural|neural|naturel/.test(n)) x+=10;
+      if(/google/.test(n)) x+=6;
+      if(/siri/.test(n)) x+=5;
+      if(/compact|espeak|robot/.test(n)) x-=8;
+      return x; };
+    return cand.sort((a,b)=>score(b)-score(a))[0];
+  }catch(e){ return null; }
+}
 function frVoice(){ return voiceFor('fr-FR'); }
 /* Accents : l'italien utilise une voix italienne qui lit le français ; le Sud n'existe pas en synthèse vocale, on l'imite par les expressions. */
 let ACC = store.get('oche.accents', {});
@@ -613,7 +632,8 @@ function say(text, rate, pitch, fallback, acc){
     const u=new SpeechSynthesisUtterance(text);
     const itv = acc==='it' ? voiceFor('it-IT') : null;
     if(itv){ u.voice=itv; u.lang=itv.lang; } else { u.lang='fr-FR'; const v=frVoice(); if(v) u.voice=v; }
-    u.rate=rate||(acc==='sud'?1.15:1.05); u.pitch=pitch||(acc==='sud'?1.08:1); u.volume=1;
+    const j=(a,b)=>a+Math.random()*(b-a);
+    u.rate=rate||(acc==='sud'?j(1.08,1.18):j(.95,1.08)); u.pitch=pitch||(acc==='sud'?j(1.02,1.12):j(.92,1.08)); u.volume=1;
     let started=false, done=false;
     const fb=()=>{ if(done) return; done=true; clearTimeout(sayT); fallback && fallback(); };
     u.onstart=()=>{ started=true; clearTimeout(sayT); };
