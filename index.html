@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0F231B">
-<title>Oche Show, fléchettes animées</title>
+<title>Oche, marqueur de fléchettes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -44,12 +44,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-
 
 /* ---------- Accueil ---------- */
 .home{max-width:560px;margin:0 auto;padding:0 16px 40px;position:relative;overflow-x:hidden}
-.brand{position:relative;height:220px;display:flex;align-items:flex-end;padding-bottom:16px}
-.brand .dboard{position:absolute;right:-100px;top:-30px;width:250px;height:250px;opacity:.9;transform:rotate(-9deg);
+.brand{position:relative;height:210px;display:flex;align-items:flex-end;padding-bottom:16px}
+.brand .dboard{position:absolute;right:-78px;top:-34px;width:260px;height:260px;transform:rotate(-9deg);
   animation:spin 1.1s cubic-bezier(.15,.85,.25,1) both;filter:drop-shadow(0 10px 24px rgba(0,0,0,.25))}
 @keyframes spin{from{transform:rotate(-200deg) scale(.85);opacity:0}to{transform:rotate(-9deg) scale(1);opacity:1}}
-.brand h1{font:800 64px/.85 'Barlow Condensed','Arial Narrow',sans-serif;margin:0;letter-spacing:-2px;position:relative}
-.brand p{margin:8px 0 0;color:var(--muted);font-weight:500;position:relative;max-width:55%}
+.brand h1{font:800 92px/.82 'Barlow Condensed','Arial Narrow',sans-serif;margin:0;letter-spacing:-2px;position:relative}
+.brand p{margin:8px 0 0;color:var(--muted);font-weight:500;position:relative}
 .group{margin-top:26px}
 .group h2{font:700 24px/1.1 'Barlow Condensed','Arial Narrow',sans-serif;margin:0 0 10px 2px}
 .card{background:var(--surface);border-radius:18px;overflow:hidden}
@@ -205,109 +205,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-
 .tarea label{display:block;font-weight:600;font-size:15px;margin:4px 0 6px}
 .tarea textarea{width:100%;font:400 16px/1.4 'Barlow',sans-serif;color:inherit;background:var(--surface-2);border:0;border-radius:12px;padding:10px 12px;resize:vertical;margin-bottom:10px}
 .tarea small{color:var(--muted);font-size:13px}
-
-.prow .acc{padding:6px 8px;font-size:13px}
-.phb{flex:none;width:40px;height:40px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;overflow:hidden;color:var(--muted)}
-.phb img{width:100%;height:100%;object-fit:cover}
-.phb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
-.fx{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;
-  padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 40px);color:#fff;text-align:center;
-  background:radial-gradient(circle at 50% 40%,#2a4d40,#07130e 75%);animation:fxin .25s ease both;cursor:pointer}
-.fx.out{animation:fxout .35s ease both}
-@keyframes fxin{from{opacity:0}}
-@keyframes fxout{to{opacity:0;transform:scale(1.04)}}
-.fx .ttl{white-space:nowrap;font:800 clamp(52px,16.5vw,140px)/.9 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:-1px;position:relative;z-index:3;
-  -webkit-text-stroke:3px rgba(0,0,0,.35);text-shadow:0 6px 0 rgba(0,0,0,.35)}
-.fx .sub{font:600 21px/1.3 'Barlow',sans-serif;max-width:22ch;position:relative;z-index:3;text-shadow:0 2px 8px rgba(0,0,0,.6)}
-.fx .tapx{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);font-size:13px;opacity:.6}
-.ava{width:96px;height:96px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 6px 20px rgba(0,0,0,.4);position:relative;z-index:3;flex:none}
-.ava.ini{display:grid;place-items:center;background:var(--red);font:800 48px 'Barlow Condensed',sans-serif;color:#fff}
-.ava.big{width:130px;height:130px}
-.zoom{animation:zoom .7s cubic-bezier(.2,1.6,.4,1) both}
-@keyframes zoom{from{transform:scale(0) rotate(-25deg)}}
-.slam{animation:slam .5s cubic-bezier(.2,1.5,.4,1) .45s both}
-@keyframes slam{from{transform:scale(3);opacity:0}}
-.pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1) .7s both}
-@keyframes pop{from{transform:scale(.3);opacity:0}}
-.fade{animation:fadeup 1s ease .3s both}
-@keyframes fadeup{from{opacity:0;transform:translateY(20px)}}
-.wobble{animation:wob .9s ease-in-out .2s both}
-@keyframes wob{0%{transform:scale(0)}40%{transform:scale(1.1) rotate(-6deg)}60%{transform:rotate(5deg)}80%{transform:rotate(-3deg)}100%{transform:none}}
-.shake{animation:fxin .2s both,shk .5s .1s both}
-@keyframes shk{20%{transform:translate(-12px,6px)}40%{transform:translate(10px,-8px)}60%{transform:translate(-8px,4px)}80%{transform:translate(6px,-2px)}}
-/* 180 */
-.s-max{background:radial-gradient(circle at 50% 40%,#8a1414,#1a0303 75%)}
-.s-max .ttl{color:#FFD54A}
-.burst{position:absolute;width:0;height:0}
-.spark{position:absolute;width:8px;height:8px;border-radius:50%;opacity:0;animation:spark 1.2s ease-out both;animation-iteration-count:2}
-@keyframes spark{0%{opacity:1;transform:rotate(var(--a)) translateX(0)}100%{opacity:0;transform:rotate(var(--a)) translateX(120px)}}
-/* gros tour */
-.s-great{background:radial-gradient(circle at 50% 35%,#1F8F4E,#06200f 75%)}
-.target{width:190px;height:190px;animation:hit .4s ease .5s both;position:relative;z-index:1}
-.target .dboard{width:100%;height:100%}
-@keyframes hit{30%{transform:scale(.92) rotate(-4deg)}60%{transform:scale(1.04) rotate(2deg)}}
-.fly{position:absolute;top:calc(50% - 110px);left:calc(50% - 130px);width:140px;z-index:2;animation:fly .5s cubic-bezier(.3,.1,.6,1) both}
-.fly .dart{width:140px}
-@keyframes fly{from{transform:translate(-80vw,40vh) rotate(-25deg)}}
-/* désert */
-.s-desert{background:linear-gradient(#F6C27A,#D9874A 60%,#A85A2D)}
-.s-desert .sun{position:absolute;top:12%;right:14%;width:90px;height:90px;border-radius:50%;background:#FFE7A0;opacity:.85}
-.s-desert .ground{position:absolute;left:0;right:0;bottom:22%;height:3px;background:rgba(80,40,10,.35)}
-.weed{position:absolute;bottom:22%;left:-120px;width:110px;height:110px;fill:none;stroke:#6B4A2A;stroke-width:3;animation:roll 3.2s linear both}
-@keyframes roll{0%{transform:translateX(0) rotate(0)}25%{transform:translateX(30vw) translateY(-30px) rotate(270deg)}50%{transform:translateX(60vw) rotate(540deg)}75%{transform:translateX(90vw) translateY(-20px) rotate(810deg)}100%{transform:translateX(calc(100vw + 240px)) rotate(1080deg)}}
-.wind i{position:absolute;left:-30%;height:2px;width:30%;background:rgba(255,255,255,.6);border-radius:2px;animation:wind 1.4s linear infinite}
-.wind i:nth-child(1){top:30%}.wind i:nth-child(2){top:45%;animation-delay:.5s}.wind i:nth-child(3){top:60%;animation-delay:.9s}
-@keyframes wind{to{left:120%}}
-.s-desert .ttl{color:#5a2e10;-webkit-text-stroke:0;text-shadow:none}
-.s-desert .sub{color:#3b1c06;text-shadow:none}
-/* merguez */
-.s-grill{background:radial-gradient(circle at 50% 55%,#5a1a0c,#120403 75%)}
-.sausage{position:relative;width:240px;animation:sizzle .25s ease-in-out infinite alternate}
-.sausage svg{width:100%;display:block}
-@keyframes sizzle{to{transform:translateY(-3px) rotate(-1deg)}}
-.ava.onsausage{position:absolute;width:62px;height:62px;left:50%;top:50%;transform:translate(-50%,-50%);border-width:3px}
-.drop{position:absolute;right:42px;top:6px;width:12px;height:18px;background:#9BD7FF;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;animation:drip 1s ease-in infinite}
-@keyframes drip{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(40px)}}
-.grill{width:260px;height:14px;margin-top:-4px;background:repeating-linear-gradient(90deg,#333 0 14px,transparent 14px 26px);border-top:4px solid #555}
-.smoke i{position:absolute;bottom:52%;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.18);animation:smoke 2.2s ease-out infinite}
-.smoke i:nth-child(1){left:42%}.smoke i:nth-child(2){left:50%;animation-delay:.7s}.smoke i:nth-child(3){left:56%;animation-delay:1.4s}
-@keyframes smoke{from{transform:translateY(0) scale(.5);opacity:.8}to{transform:translateY(-200px) scale(2.4);opacity:0}}
-.s-grill .ttl{color:#FFB25A}
-/* floppeur */
-.s-fish{background:linear-gradient(#2E6FA8,#163a5c)}
-.fish{width:180px;animation:flop .45s ease-in-out infinite alternate}
-@keyframes flop{0%{transform:translateY(0) rotate(-18deg) scaleX(1)}50%{transform:translateY(-70px) rotate(0)}100%{transform:translateY(0) rotate(18deg) scaleX(-1)}}
-.s-fish .floor{width:70%;height:4px;background:rgba(255,255,255,.35);border-radius:2px;margin-top:-6px}
-/* bust */
-.s-bust{background:radial-gradient(circle at 50% 45%,#3b0b0b,#0d0202 75%)}
-.boom{position:absolute;width:min(110vw,520px);animation:boom .45s cubic-bezier(.2,1.6,.4,1) both}
-@keyframes boom{from{transform:scale(0) rotate(-40deg)}}
-.bustt{color:#C9302C;-webkit-text-stroke:3px #fff!important;animation:zoom .5s cubic-bezier(.2,1.6,.4,1) .15s both}
-/* fantôme */
-.s-ghost{background:radial-gradient(circle at 50% 40%,#2b2f45,#07080f 75%)}
-.ghost{position:relative;width:130px;animation:ghost 3s ease-in-out both}
-.ghost svg{width:100%}
-.ava.inghost{position:absolute;width:64px;height:64px;left:50%;top:22%;transform:translateX(-50%);border-width:3px}
-@keyframes ghost{0%{transform:translateY(60px);opacity:0}20%{opacity:1}50%{transform:translateY(-10px) rotate(-6deg)}80%{transform:translateY(-40px) rotate(6deg);opacity:1}100%{transform:translateY(-120px);opacity:.2}}
-/* victoire */
-.s-win{background:radial-gradient(circle at 50% 40%,#2a4d40,#061510 75%)}
-.s-win .ttl{color:#FFD54A}
-.conf{position:absolute;top:-20px;width:10px;height:16px;border-radius:2px;animation:fall linear both}
-@keyframes fall{to{top:110%;transform:rotate(720deg) translateX(40px)}}
-.trophy{position:relative;width:150px;animation:rise .9s cubic-bezier(.2,1.4,.4,1) both}
-.trophy svg{width:100%}
-.ava.ontrophy{position:absolute;width:62px;height:62px;left:50%;top:10%;transform:translateX(-50%);border-width:3px}
-@keyframes rise{from{transform:translateY(60vh)}}
-/* shanghai */
-.s-shang{background:radial-gradient(circle at 50% 40%,#9b1b1b,#200303 75%)}
-.s-shang .ttl{color:#FFD54A}
-.lanterns{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-around}
-.lanterns i{width:46px;height:62px;margin-top:40px;border-radius:40%;background:#E5483F;box-shadow:0 0 30px #ff7b5a;transform-origin:50% -40px;animation:swing 1.4s ease-in-out infinite alternate}
-@keyframes swing{from{transform:rotate(-12deg)}to{transform:rotate(12deg)}}
-/* GIF perso */
-.s-gif{background:#000}
-.gif{max-width:92vw;max-height:58vh;border-radius:16px;animation:pop .4s cubic-bezier(.2,1.5,.4,1) both}
-@media (prefers-reduced-motion:reduce){.fx *{animation-duration:.01s!important;animation-iteration-count:1!important}}
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translate(-50%,-20px);opacity:0;
   background:var(--ink);color:var(--bg);font-weight:600;padding:10px 18px;border-radius:999px;z-index:40;
   transition:opacity .2s,transform .25s;pointer-events:none;max-width:90%;text-align:center}
@@ -568,14 +465,14 @@ const ORDER = ['x01','cricket','atc','shanghai','killer','halve','countup','bobs
 
 /* ---------- État ---------- */
 let G = null, H = [], screen = 'home', mod = 1, sheet = null, resultsHidden = false;
-let players = store.get('ocheg.players', null);
-if(!players || players.join()==='Joueur 1,Joueur 2'){ players=['Charles','Victor','Grégoire','Simon']; store.set('ocheg.players',players); }
-let lastOpts = store.get('ocheg.opts', {});
-const saved = store.get('ocheg.game', null);
+let players = store.get('oche.players', null);
+if(!players || players.join()==='Joueur 1,Joueur 2'){ players=['Charles','Victor','Grégoire','Simon']; store.set('oche.players',players); }
+let lastOpts = store.get('oche.opts', {});
+const saved = store.get('oche.game', null);
 if(saved && saved.G && MODES[saved.G.mode]){ G = saved.G; H = saved.H || []; }
 const M = () => MODES[G.mode];
 const snap = () => { H.push(JSON.stringify(G)); if(H.length>400) H.shift(); };
-const save = () => store.set('ocheg.game', {G, H:H.slice(-80)});
+const save = () => store.set('oche.game', {G, H:H.slice(-80)});
 
 
 /* ---------- Sons et voix ---------- */
@@ -604,18 +501,16 @@ const PERSO_CHEERS = [
  "Grégoire: Saint Grégoire, priez pour nous, il est en feu !",
  "Simon: Jacques a dit : applaudissez Simon !",
  "Simon: Simon, le patron !"];
-let SET = Object.assign({on:true, voice:true, fx:true, gifGood:'', gifBad:'', taunts:[...DEF_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...PERSO_CHEERS].join('\n'), v:3}, store.get('ocheg.sound',{}));
+let SET = Object.assign({on:true, voice:true, taunts:[...DEF_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...PERSO_CHEERS].join('\n'), v:3}, store.get('oche.sound',{}));
 if(SET.v===2){
   const fix=(txt,defs)=>{ const keep=String(txt||'').split('\n').filter(l=>l && !OLD_DEF.includes(l)); return [...defs, ...keep.filter(l=>!defs.includes(l))].join('\n'); };
-  SET.taunts=fix(SET.taunts,DEF_TAUNTS); SET.cheers=fix(SET.cheers,DEF_CHEERS); SET.v=3; store.set('ocheg.sound',SET);
+  SET.taunts=fix(SET.taunts,DEF_TAUNTS); SET.cheers=fix(SET.cheers,DEF_CHEERS); SET.v=3; store.set('oche.sound',SET);
 }
 if(SET.v!==2 && SET.v!==3){
   const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
-  SET.taunts=add(SET.taunts,PERSO_TAUNTS); SET.cheers=add(SET.cheers,PERSO_CHEERS); SET.v=3; store.set('ocheg.sound',SET);
+  SET.taunts=add(SET.taunts,PERSO_TAUNTS); SET.cheers=add(SET.cheers,PERSO_CHEERS); SET.v=3; store.set('oche.sound',SET);
 }
-if(SET.fx===undefined) SET.fx=true;
-if(!SET.v4){ SET.voice=true; SET.v4=true; store.set('ocheg.sound',SET); }
-const saveSet = () => store.set('ocheg.sound', SET);
+const saveSet = () => store.set('oche.sound', SET);
 let AC=null, NB=null;
 function ac(){
   if(!SET.on) return null;
@@ -641,32 +536,45 @@ function tock(miss){
   g.gain.setValueAtTime(.5,t); g.gain.exponentialRampToValueAtTime(.0001,t+.12);
   o.connect(g).connect(out); o.start(t); o.stop(t+.14);
 }
-function cheer(level){
-  const c=ac(); if(!c) return 0; const t0=c.currentTime, dur=1.6+level*1.6, peak=.16+.22*level, out=master(c,.9);
-  [[450,1],[1100,1.2],[2600,.9]].forEach(([f,q])=>{
-    const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=f; bp.Q.value=q;
-    const wob=c.createGain(); wob.gain.value=1;
-    const lfo=c.createOscillator(), lg=c.createGain(); lfo.frequency.value=2+Math.random()*5; lg.gain.value=.35; lfo.connect(lg); lg.connect(wob.gain);
-    const env=c.createGain(); env.gain.setValueAtTime(.0001,t0); env.gain.exponentialRampToValueAtTime(peak,t0+.3);
-    env.gain.setValueAtTime(peak,t0+dur*.5); env.gain.exponentialRampToValueAtTime(.0001,t0+dur);
-    noise(c,t0,dur).connect(bp).connect(wob).connect(env).connect(out); lfo.start(t0); lfo.stop(t0+dur);
-  });
-  const claps=Math.round(15+level*55);
-  for(let i=0;i<claps;i++){
-    const t=t0+.08+Math.random()*dur*.75, bp=c.createBiquadFilter(), g=c.createGain();
-    bp.type='bandpass'; bp.frequency.value=1200+Math.random()*1800; bp.Q.value=.9;
-    g.gain.setValueAtTime(.25+Math.random()*.35,t); g.gain.exponentialRampToValueAtTime(.0001,t+.07);
-    noise(c,t,.09).connect(bp).connect(g).connect(out);
-  }
-  const wh=Math.round(level*3);
-  for(let i=0;i<wh;i++){
-    const t=t0+.15+Math.random()*dur*.45, o=c.createOscillator(), g=c.createGain(), f=1700+Math.random()*500;
-    o.frequency.setValueAtTime(f,t); o.frequency.linearRampToValueAtTime(f*1.45,t+.22); o.frequency.linearRampToValueAtTime(f*1.1,t+.55);
-    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.09,t+.05); g.gain.exponentialRampToValueAtTime(.0001,t+.6);
-    o.connect(g).connect(out); o.start(t); o.stop(t+.62);
-  }
-  return dur;
+function honk(c, out, t, d){
+  // Klaxon à deux tons, comme une voiture (environ fa et la).
+  const g=c.createGain(), lp=c.createBiquadFilter(), sh=c.createWaveShaper();
+  const curve=new Float32Array(256); for(let i=0;i<256;i++){ const x=i/128-1; curve[i]=Math.tanh(3*x); } sh.curve=curve;
+  lp.type='lowpass'; lp.frequency.value=2400;
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.32,t+.015); g.gain.setValueAtTime(.32,t+d-.03); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  sh.connect(lp).connect(g).connect(out);
+  [349,440].forEach(f=>{ const o=c.createOscillator(); o.type='square'; o.frequency.value=f; const og=c.createGain(); og.gain.value=.5; o.connect(og).connect(sh); o.start(t); o.stop(t+d+.02); });
 }
+function woaw(c, out, t, voices){
+  // « Woaaw » : une voix synthétique qui passe du son « ou » au son « a », puis retombe.
+  const D=1.1;
+  for(let v=0; v<voices; v++){
+    const st=t+Math.random()*.12, f0=(v%2?190:125)*(0.94+Math.random()*.12);
+    const o=c.createOscillator(); o.type='sawtooth';
+    o.frequency.setValueAtTime(f0*.85,st); o.frequency.linearRampToValueAtTime(f0*1.25,st+.35); o.frequency.linearRampToValueAtTime(f0*.8,st+D);
+    const vib=c.createOscillator(), vg=c.createGain(); vib.frequency.value=5+Math.random()*1.5; vg.gain.value=f0*.02; vib.connect(vg); vg.connect(o.frequency);
+    const env=c.createGain(), lvl=.5/Math.sqrt(voices);
+    env.gain.setValueAtTime(.0001,st); env.gain.exponentialRampToValueAtTime(lvl,st+.12); env.gain.setValueAtTime(lvl,st+D*.65); env.gain.exponentialRampToValueAtTime(.0001,st+D);
+    [[320,760,420,6],[800,1250,650,8]].forEach(([a,b,z,q])=>{
+      const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=q;
+      bp.frequency.setValueAtTime(a,st); bp.frequency.linearRampToValueAtTime(b,st+.35); bp.frequency.linearRampToValueAtTime(z,st+D);
+      const fg=c.createGain(); fg.gain.value=3; o.connect(bp).connect(fg).connect(env);
+    });
+    env.connect(out); o.start(st); o.stop(st+D+.05); vib.start(st); vib.stop(st+D+.05);
+  }
+  return D+.15;
+}
+function cheer(level){
+  const c=ac(); if(!c) return 0; const t0=c.currentTime+.02, out=master(c,.85);
+  if(level<.5){ honk(c,out,t0,.22); return .3; }
+  const pattern = level>=1.4 ? [[0,.16],[.24,.16],[.48,.55]] : level>=.9 ? [[0,.18],[.28,.38]] : [[0,.3]];
+  pattern.forEach(([d,len])=>honk(c,out,t0+d,len));
+  const last=pattern[pattern.length-1], hornEnd=last[0]+last[1];
+  const voices = level>=1.4 ? 7 : level>=.9 ? 4 : 2;
+  const w = woaw(c,out,t0+hornEnd+.05,voices);
+  return hornEnd+.05+w;
+}
+
 function boo(level){
   const c=ac(); if(!c) return 0; const t0=c.currentTime, dur=1.3+level, out=master(c,.8);
   const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(750,t0); lp.frequency.linearRampToValueAtTime(420,t0+dur); lp.Q.value=3; lp.connect(out);
@@ -722,7 +630,7 @@ function voiceFor(lang){
 }
 function frVoice(){ return voiceFor('fr-FR'); }
 /* Accents : l'italien utilise une voix italienne qui lit le français ; le Sud n'existe pas en synthèse vocale, on l'imite par les expressions. */
-let ACC = store.get('ocheg.accents', {});
+let ACC = store.get('oche.accents', {});
 const ACC_LABEL = {'':'Accent', it:'Italien', sud:'Du Sud'};
 const ACC_NEXT = {'':'it', it:'sud', sud:''};
 const accOf = nom => ACC[norm(nom)] || '';
@@ -766,70 +674,22 @@ function hush(){ clearTimeout(sayT); try{ const ss=window.speechSynthesis; if(ss
 const taunt = nom => pick(SET.taunts, DEF_TAUNTS, nom);
 const praise = nom => pick(SET.cheers, DEF_CHEERS, nom);
 function react(kind, nom){
-  if(!kind) return;
+  if(!SET.on || !kind) return;
   hush();
   const snd = {
     max:()=>cheer(1.5), great:()=>cheer(1), good:()=>cheer(.4), bad:()=>boo(.5),
     zero:()=>{ trombone(); boo(.7); }, bust:()=>trombone(), kill:()=>cheer(.8),
     leg:()=>cheer(1.1), win:()=>cheer(1.6), shanghai:()=>cheer(1.6), end:()=>cheer(.8)
   }[kind];
-  const mood = ({great:'cheer', good:'cheer', bad:'taunt', zero:'taunt', bust:'taunt'})[kind];
-  // La phrase affichée sous l'animation est la même que celle dite par la voix.
-  const line = mood ? accentize(mood==='cheer' ? praise(nom) : taunt(nom), nom, mood) : '';
-  const spoken = {
-    max:'Cent quatre-vingts !', great:line, bad:line, zero:line, bust:'Bust ! '+line,
-    kill:`Au revoir ${nom} !`, leg:`Manche pour ${nom} !`, win:`Victoire de ${nom} !`,
-    shanghai:`Shanghaï ! Victoire de ${nom} !`, end:'Partie terminée.'
+  const text = {
+    max:'Cent quatre-vingts !', great:praise(nom), bad:taunt(nom), zero:taunt(nom),
+    bust:'Bust ! '+taunt(nom), kill:`Au revoir ${nom} !`, leg:`Manche pour ${nom} !`,
+    win:`Victoire de ${nom} !`, shanghai:`Shanghaï ! Victoire de ${nom} !`, end:'Partie terminée.'
   }[kind];
-  if(SET.fx) showScene(kind, nom, line);
-  if(!SET.on) return;
   // Soit la voix, soit le bruit : jamais les deux en même temps.
-  if(SET.voice && spoken && Math.random()<.5) say(spoken, kind==='max'?.85:0, 0, snd, accOf(nom));
+  const mood = ({great:'cheer', win:'cheer', leg:'cheer', bad:'taunt', zero:'taunt', bust:'taunt'})[kind];
+  if(SET.voice && text && Math.random()<.5) say(kind==='max' ? text : accentize(text, nom, mood), kind==='max'?.85:0, 0, snd, accOf(nom));
   else snd && snd();
-}
-
-
-/* ---------- Animations façon bowling ---------- */
-let PHOTOS = store.get('ocheg.photos', {});
-const photoOf = nom => PHOTOS[norm(nom)] || '';
-const ava = (nom, cls) => { const ph=photoOf(nom); return ph ? `<img class="ava ${cls||''}" src="${ph}" alt="">` : `<span class="ava ini ${cls||''}">${esc((nom||'?').trim().charAt(0).toUpperCase())}</span>`; };
-const gifList = txt => String(txt||'').split('\n').map(x=>x.trim()).filter(x=>/^https?:\/\//i.test(x));
-const DART = `<svg class="dart" viewBox="0 0 140 30" aria-hidden="true"><path d="M0 15h18" stroke="#ddd" stroke-width="3"/><path d="M18 9h46l8 6-8 6H18z" fill="#C9302C"/><path d="M72 15h40" stroke="#888" stroke-width="5"/><path d="M110 3l30 12-30 12 6-12z" fill="#1F8F4E"/></svg>`;
-function particles(n, cls, fn){ let h=''; for(let i=0;i<n;i++) h+=`<i class="${cls}" style="${fn(i)}"></i>`; return h; }
-const CONF = ['#E5483F','#34B26A','#FFD54A','#EADBC0','#4AA3FF','#FF8AD8'];
-const confetti = n => particles(n,'conf',i=>`left:${Math.random()*100}%;background:${CONF[i%CONF.length]};animation-delay:${(Math.random()*1.2).toFixed(2)}s;animation-duration:${(2+Math.random()*1.6).toFixed(2)}s;transform:rotate(${Math.random()*360|0}deg)`);
-function fireworks(){ let h=''; [[25,30],[75,25],[50,18],[30,60],[72,62]].forEach(([x,y],k)=>{ h+=`<div class="burst" style="left:${x}%;top:${y}%;animation-delay:${k*.28}s">`+particles(18,'spark',i=>`--a:${i*20}deg;background:${CONF[(i+k)%CONF.length]};animation-delay:${k*.28}s`)+'</div>'; }); return h; }
-const SCENES = {
-  max: n=>({cls:'s-max', dur:3600, html:`${fireworks()}<div class="ttl zoom">180</div><div class="sub pop">${esc(n)}, le maximum !</div>${ava(n,'pop')}`}),
-  great: (n,L)=>({cls:'s-great', dur:2900, html:`<div class="target">${boardSVG()}</div><div class="fly">${DART}</div><div class="ttl slam">${rnd(['ÉNORME !','QUEL TIR !','CARTON !','PROPRE !'])}</div><div class="sub pop">${esc(L)}</div>`}),
-  zero: (n,L)=> Math.random()<.5 ? ({cls:'s-desert', dur:3400, html:`<div class="sun"></div><div class="wind"><i></i><i></i><i></i></div><svg class="weed" viewBox="0 0 100 100" aria-hidden="true">${[0,30,60,90,120,150].map(r=>`<ellipse cx="50" cy="50" rx="44" ry="20" transform="rotate(${r} 50 50)"/>`).join('')}</svg><div class="ground"></div><div class="ttl fade">RIEN.</div><div class="sub pop">${esc(L)}</div>`})
-                              : ({cls:'s-grill', dur:3400, html:`<div class="smoke"><i></i><i></i><i></i></div><div class="sausage">${ava(n,'onsausage')}<svg viewBox="0 0 220 80" aria-hidden="true"><rect x="6" y="10" width="208" height="60" rx="30" fill="#A3402B"/><path d="M40 22l10 36M80 22l10 36M120 22l10 36M160 22l10 36" stroke="#5E1E12" stroke-width="5" stroke-linecap="round"/>${photoOf(n)?'':'<circle cx="92" cy="36" r="5" fill="#fff"/><circle cx="128" cy="36" r="5" fill="#fff"/><path d="M96 56q14-10 28 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>'}</svg><i class="drop"></i></div><div class="grill"></div><div class="ttl wobble">MERGUEZ !</div><div class="sub pop">${esc(L)}</div>`}),
-  bad: (n,L)=>({cls:'s-fish', dur:3000, html:`<svg class="fish" viewBox="0 0 160 80" aria-hidden="true"><ellipse cx="70" cy="40" rx="55" ry="26" fill="#FF9F45"/><path d="M118 40l38-26v52z" fill="#F07C1A"/><circle cx="38" cy="34" r="6" fill="#fff"/><circle cx="37" cy="35" r="3" fill="#222"/><path d="M22 50q8 4 14 0" stroke="#7a3a00" stroke-width="3" fill="none"/></svg><div class="floor"></div><div class="ttl slam">FLOPPEUR !</div><div class="sub pop">${esc(L)}</div>`}),
-  bust: (n,L)=>({cls:'s-bust shake', dur:2800, html:`<svg class="boom" viewBox="0 0 200 200" aria-hidden="true"><polygon points="${Array.from({length:24},(_,i)=>{const r=i%2?58:96,a=i*Math.PI/12;return (100+r*Math.cos(a)).toFixed(1)+','+(100+r*Math.sin(a)).toFixed(1);}).join(' ')}" fill="#FFD54A" stroke="#C9302C" stroke-width="6"/></svg><div class="ttl bustt">BUST !</div><div class="sub pop">${esc(L)}</div>`}),
-  kill: n=>({cls:'s-ghost', dur:3000, html:`<div class="ghost"><svg viewBox="0 0 100 120" aria-hidden="true"><path d="M10 50a40 40 0 0180 0v62l-13-10-14 10-13-10-13 10-14-10-13 10z" fill="#F4F4F4"/>${photoOf(n)?'':'<circle cx="36" cy="48" r="7" fill="#222"/><circle cx="64" cy="48" r="7" fill="#222"/><ellipse cx="50" cy="72" rx="8" ry="10" fill="#222"/>'}</svg>${ava(n,'inghost')}</div><div class="ttl fade">ÉLIMINÉ</div><div class="sub pop">Au revoir ${esc(n)} !</div>`}),
-  leg: n=>({cls:'s-win', dur:3000, html:`${confetti(40)}${ava(n,'pop big')}<div class="ttl slam">MANCHE !</div><div class="sub pop">Pour ${esc(n)}</div>`}),
-  win: n=>({cls:'s-win', dur:4600, html:`${confetti(80)}<div class="trophy"><svg viewBox="0 0 120 140" aria-hidden="true"><path d="M30 10h60v30a30 30 0 01-60 0z" fill="#FFD54A"/><path d="M30 18H12a18 18 0 0018 26M90 18h18a18 18 0 01-18 26" stroke="#FFD54A" stroke-width="7" fill="none"/><rect x="52" y="68" width="16" height="30" fill="#E0B23A"/><rect x="32" y="98" width="56" height="16" rx="3" fill="#8A5A1A"/></svg>${ava(n,'ontrophy')}</div><div class="ttl zoom">VICTOIRE</div><div class="sub pop">${esc(n)} ${rnd(['est intouchable !','régale toute la bande !','est le patron !'])}</div>`}),
-  shanghai: n=>({cls:'s-shang', dur:4000, html:`<div class="lanterns">${[1,2,3,4].map(i=>`<i style="animation-delay:${i*.15}s"></i>`).join('')}</div>${confetti(40)}<div class="ttl zoom">SHANGHAÏ !</div><div class="sub pop">${esc(n)} gagne d'un coup !</div>`}),
-  end: n=>({cls:'s-win', dur:3000, html:`${confetti(40)}<div class="ttl zoom">TERMINÉ</div><div class="sub pop">Bien joué ${esc(n)}</div>`})
-};
-let fxT=null;
-function closeScene(){ clearTimeout(fxT); document.querySelectorAll('.fx').forEach(x=>x.remove()); }
-function showScene(kind, nom, line){
-  if(kind==='good'){ toast(`👍 ${line||praise(nom)}`); return; }
-  const mk=SCENES[kind]; if(!mk) return;
-  closeScene();
-  const bad=['zero','bust','bad'].includes(kind), good=['great','max','win'].includes(kind);
-  const gifs = gifList(bad ? SET.gifBad : good ? SET.gifGood : '');
-  const ov=document.createElement('div'); ov.setAttribute('role','status'); ov.setAttribute('aria-live','polite');
-  let sc;
-  if(gifs.length && Math.random()<.6){
-    sc={cls:'s-gif', dur:3800, html:`<img class="gif" src="${esc(rnd(gifs))}" alt=""><div class="sub pop">${esc(line)}</div>`};
-  } else sc=mk(nom, line);
-  ov.className='fx '+sc.cls; ov.innerHTML=sc.html+'<span class="tapx">Touchez pour fermer</span>';
-  const img=ov.querySelector('img.gif'); if(img) img.onerror=()=>{ const f=mk(nom, line); ov.className='fx '+f.cls; ov.innerHTML=f.html; };
-  ov.addEventListener('click', closeScene);
-  document.body.appendChild(ov);
-  fxT=setTimeout(()=>{ ov.classList.add('out'); setTimeout(()=>ov.remove(),350); }, sc.dur);
 }
 
 /* ---------- Moteur ---------- */
@@ -837,7 +697,7 @@ function newGame(modeId, opts, names){
   G = { mode:modeId, opts, players:names.map(n=>({name:n, legs:0, pts:0, thrown:0, out:false})),
         cur:0, starter:0, round:1, leg:1, darts:[], turnDone:false, bust:false, over:false, outSeq:0, note:'' };
   M().init(G); H=[]; mod=1; resultsHidden=false; screen='game'; sheet=null; save(); render();
-  hush(); closeScene();
+  hush();
 }
 function throwDart(d){
   if(!G || G.over || G.turnDone) return;
@@ -906,7 +766,7 @@ function nextTurn(){
   if(mr && G.round>mr){ G.round=mr; endGame(null); if(note) toast(note); return; }
   save(); render(); if(note) toast(note);
 }
-function undo(){ if(!H.length) return; buzz(); hush(); closeScene(); G=JSON.parse(H.pop()); mod=1; resultsHidden=false; save(); render(); }
+function undo(){ if(!H.length) return; buzz(); hush(); G=JSON.parse(H.pop()); mod=1; resultsHidden=false; save(); render(); }
 
 /* ---------- Rendu ---------- */
 function boardSVG(){
@@ -926,28 +786,23 @@ function boardSVG(){
 
 function homeHTML(){
   const res = G && !G.over ? `<button class="resume" data-a="resume"><span><b>Reprendre la partie</b><small>${esc(MODES[G.mode].name)} avec ${esc(G.players.map(p=>p.name).join(', '))}</small></span><span aria-hidden="true">›</span></button>` : '';
-  const pl = players.map((n,i)=>`<div class="prow"><span class="pidx">${i+1}</span><input aria-label="Nom du joueur ${i+1}" value="${esc(n)}" data-i="${i}" maxlength="16" autocomplete="off" enterkeyhint="done"><button class="acc${accOf(n)?' on':''}" data-a="acc" data-i="${i}" aria-label="Accent de ${esc(n)} : ${ACC_LABEL[accOf(n)]}">${ACC_LABEL[accOf(n)]}</button><button class="phb" data-a="photo" data-i="${i}" aria-label="Photo de ${esc(n)}">${photoOf(n)?`<img src="${photoOf(n)}" alt="">`:'<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'}</button>${players.length>1?`<button class="x" data-a="delp" data-i="${i}" aria-label="Retirer ${esc(n)}">×</button>`:''}</div>`).join('');
+  const pl = players.map((n,i)=>`<div class="prow"><span class="pidx">${i+1}</span><input aria-label="Nom du joueur ${i+1}" value="${esc(n)}" data-i="${i}" maxlength="16" autocomplete="off" enterkeyhint="done"><button class="acc${accOf(n)?' on':''}" data-a="acc" data-i="${i}" aria-label="Accent de ${esc(n)} : ${ACC_LABEL[accOf(n)]}">${ACC_LABEL[accOf(n)]}</button>${players.length>1?`<button class="x" data-a="delp" data-i="${i}" aria-label="Retirer ${esc(n)}">×</button>`:''}</div>`).join('');
   const ml = ORDER.map(id=>{ const m=MODES[id]; return `<button class="mode-row" data-a="mode" data-id="${id}"><span class="badge">${m.badge}</span><span class="mtext"><span class="mname">${m.name}</span><span class="mdesc">${m.desc}</span></span><span class="chev" aria-hidden="true">›</span></button>`; }).join('');
   return `<main class="home">
-    <header class="brand">${boardSVG()}<div><h1>Oche<br>Show</h1><p>Le marqueur qui chambre en images</p></div></header>
+    <header class="brand">${boardSVG()}<div><h1>Oche</h1><p>Le marqueur de fléchettes</p></div></header>
     ${res}
     <section class="group"><h2>Joueurs</h2><div class="card">${pl}
       <div class="pactions"><button data-a="addp" ${players.length>=8?'disabled':''}>Ajouter un joueur</button><button data-a="shuf" ${players.length<2?'disabled':''}>Mélanger l’ordre</button></div></div></section>
     <section class="group"><h2>Modes de jeu</h2><div class="card">${ml}</div></section>
-    <section class="group"><h2>Animations, sons et voix</h2><div class="card">
-      <div class="srow"><span><b>Animations</b><small>Une scène plein écran après chaque gros tour ou gros raté</small></span><button class="sw" role="switch" aria-checked="${SET.fx}" aria-label="Animations" data-a="tog" data-k="fx"></button></div>
+    <section class="group"><h2>Sons et voix</h2><div class="card">
       <div class="srow"><span><b>Sons</b><small>Acclamations, huées et trombone triste</small></span><button class="sw" role="switch" aria-checked="${SET.on}" aria-label="Sons" data-a="tog" data-k="on"></button></div>
-      <div class="srow"><span><b>Voix du commentateur</b><small>Une fois sur deux, la vanne est dite à voix haute à la place du bruit</small></span><button class="sw" role="switch" aria-checked="${SET.voice}" aria-label="Voix" data-a="tog" data-k="voice" ${SET.on?'':'disabled'}></button></div>
+      <div class="srow"><span><b>Voix du commentateur</b><small>Une fois sur deux, une blague à voix haute à la place du bruit</small></span><button class="sw" role="switch" aria-checked="${SET.voice}" aria-label="Voix" data-a="tog" data-k="voice" ${SET.on?'':'disabled'}></button></div>
       <div class="tarea"><label for="ta-t">Phrases pour chambrer</label><textarea id="ta-t" data-k="taunts" rows="5">${esc(SET.taunts)}</textarea>
         <label for="ta-c">Phrases de félicitations</label><textarea id="ta-c" data-k="cheers" rows="4">${esc(SET.cheers)}</textarea>
-        <small>Les phrases s'affichent sous l'animation. {nom} devient le nom du joueur ; « Prénom: » en début de ligne vise un seul joueur.</small></div>
-      <div class="tarea"><label for="ta-gb">Mes GIF quand c'est beau</label><textarea id="ta-gb" data-k="gifGood" rows="2" placeholder="https://…gif">${esc(SET.gifGood)}</textarea>
-        <label for="ta-gm">Mes GIF quand ça rate</label><textarea id="ta-gm" data-k="gifBad" rows="2" placeholder="https://…gif">${esc(SET.gifBad)}</textarea>
-        <small>Facultatif. Collez un lien direct vers un GIF par ligne. Ils remplacent parfois les animations intégrées.</small></div>
-      <div class="pactions"><button data-a="test" data-k="great">Gros tour</button><button data-a="test" data-k="zero">Triple zéro</button><button data-a="test" data-k="win">Victoire</button><button data-a="testv">Voix</button></div>
-      ${Object.keys(PHOTOS).length?'<div class="pactions"><button data-a="clrph">Retirer les photos</button></div>':''}
+        <small>Une phrase par ligne. {nom} est remplacé par le nom du joueur. Commencez une ligne par « Prénom: » pour qu'elle ne vise que ce joueur.</small></div>
+      <div class="pactions"><button data-a="test" data-k="great">Bon tour</button><button data-a="test" data-k="zero">Triple zéro</button><button data-a="testv">Voix</button></div>
     </div></section>
-    <p class="foot">Les parties sont enregistrées sur cet appareil.<br><button data-a="theme">Thème : ${({auto:'automatique',light:'clair',dark:'sombre'})[store.get('ocheg.theme','auto')]}</button></p>
+    <p class="foot">Les parties sont enregistrées sur cet appareil.<br><button data-a="theme">Thème : ${({auto:'automatique',light:'clair',dark:'sombre'})[store.get('oche.theme','auto')]}</button></p>
   </main>`;
 }
 
@@ -1065,7 +920,7 @@ function render(){
   $('#app').innerHTML = screen==='game' && G ? gameHTML() : homeHTML();
   $('#sheet-root').innerHTML = sheetHTML();
 }
-function applyTheme(){ const t=store.get('ocheg.theme','auto'); if(t==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',t); }
+function applyTheme(){ const t=store.get('oche.theme','auto'); if(t==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',t); }
 
 /* ---------- Événements ---------- */
 document.addEventListener('click', e=>{
@@ -1076,12 +931,12 @@ document.addEventListener('click', e=>{
     case 'mode': { const m=MODES[b.dataset.id], draft={}; m.opts.forEach(o=>draft[o.k]=o.d); Object.assign(draft, lastOpts[b.dataset.id]||{}); sheet={type:'mode', id:b.dataset.id, draft}; render(); break; }
     case 'opt': { const o=MODES[sheet.id].opts.find(o=>o.k===b.dataset.k); const c=o.c.find(c=>String(c[0])===b.dataset.v); sheet.draft[o.k]=c[0]; render(); break; }
     case 'close': sheet=null; render(); break;
-    case 'start': { lastOpts[sheet.id]={...sheet.draft}; store.set('ocheg.opts',lastOpts);
+    case 'start': { lastOpts[sheet.id]={...sheet.draft}; store.set('oche.opts',lastOpts);
       const names=players.map((n,i)=>n.trim()||`Joueur ${i+1}`); newGame(sheet.id,{...sheet.draft},names); break; }
-    case 'addp': players.push(`Joueur ${players.length+1}`); store.set('ocheg.players',players); render();
+    case 'addp': players.push(`Joueur ${players.length+1}`); store.set('oche.players',players); render();
       setTimeout(()=>{ const ins=document.querySelectorAll('.prow input'); const l=ins[ins.length-1]; if(l){ l.focus(); l.select(); } },0); break;
-    case 'delp': players.splice(+b.dataset.i,1); store.set('ocheg.players',players); render(); break;
-    case 'shuf': players=shuffle(players); store.set('ocheg.players',players); render(); break;
+    case 'delp': players.splice(+b.dataset.i,1); store.set('oche.players',players); render(); break;
+    case 'shuf': players=shuffle(players); store.set('oche.players',players); render(); break;
     case 'resume': screen='game'; resultsHidden=false; render(); break;
     case 'menu': screen='home'; sheet=null; render(); window.scrollTo(0,0); break;
     case 'undo': undo(); break;
@@ -1095,37 +950,23 @@ document.addEventListener('click', e=>{
     case 'replay': { const names=G.players.map(p=>p.name); names.push(names.shift()); newGame(G.mode,{...G.opts},names); break; }
     case 'snd': SET.on=!SET.on; saveSet(); if(!SET.on) hush(); else tock(false); render(); break;
     case 'tog': SET[b.dataset.k]=!SET[b.dataset.k]; saveSet(); if(!SET.on||!SET.voice) hush(); render(); break;
-    case 'test': { const nom=players[0]||'Joueur 1'; react(b.dataset.k, nom); if(!SET.fx) toast('Activez les animations pour les voir'); break; }
+    case 'test': { const nom=players[0]||'Joueur 1'; if(!SET.on){ toast('Activez les sons pour tester'); break; } react(b.dataset.k, nom); break; }
     case 'acc': { const nom=players[+b.dataset.i]||''; const k=norm(nom); if(!k) break;
-      const nx=ACC_NEXT[accOf(nom)]; if(nx) ACC[k]=nx; else delete ACC[k]; store.set('ocheg.accents',ACC); render();
+      const nx=ACC_NEXT[accOf(nom)]; if(nx) ACC[k]=nx; else delete ACC[k]; store.set('oche.accents',ACC); render();
       if(nx && SET.on && SET.voice) say(accentize(praise(nom), nom, 'cheer'), 0, 0, ()=>toast('La voix ne fonctionne pas ici'), nx);
       else if(nx) toast(`${nom} : accent ${nx==='it'?'italien':'du Sud'}`);
       break; }
-    case 'testv': { hush(); say(pick(SET.taunts, DEF_TAUNTS, players[0]||'Joueur 1'), 0, 0, ()=>toast('La voix ne fonctionne pas ici : essayez dans Safari ou Chrome'), accOf(players[0]||'')); break; }
-    case 'photo': { photoTarget=players[+b.dataset.i]||''; if(!norm(photoTarget)){ toast('Donnez un nom au joueur d’abord'); break; } $('#phin').value=''; $('#phin').click(); break; }
-    case 'clrph': PHOTOS={}; store.set('ocheg.photos',PHOTOS); render(); toast('Photos retirées'); break;
-    case 'theme': { const order=['auto','light','dark'], t=store.get('ocheg.theme','auto'); store.set('ocheg.theme',order[(order.indexOf(t)+1)%3]); applyTheme(); render(); break; }
+    case 'testv': { hush(); say(pick(SET.taunts, DEF_TAUNTS, players[0]||'Joueur 1'), 0, 0, ()=>toast('La voix ne fonctionne pas ici : essayez dans Safari ou Chrome')); break; }
+    case 'theme': { const order=['auto','light','dark'], t=store.get('oche.theme','auto'); store.set('oche.theme',order[(order.indexOf(t)+1)%3]); applyTheme(); render(); break; }
   }
 });
 document.addEventListener('input', e=>{
-  if(e.target.matches('.prow input')){ players[+e.target.dataset.i]=e.target.value; store.set('ocheg.players',players); }
+  if(e.target.matches('.prow input')){ players[+e.target.dataset.i]=e.target.value; store.set('oche.players',players); }
   if(e.target.matches('.tarea textarea')){ SET[e.target.dataset.k]=e.target.value; saveSet(); }
 });
 document.addEventListener('keydown', e=>{
   if(e.target.matches('.prow input') && e.key==='Enter') e.target.blur();
   if(e.key==='Escape' && sheet){ sheet=null; render(); }
-});
-let photoTarget='';
-document.body.insertAdjacentHTML('beforeend','<input type="file" id="phin" accept="image/*" hidden>');
-$('#phin').addEventListener('change', e=>{
-  const f=e.target.files&&e.target.files[0]; if(!f || !photoTarget) return;
-  const r=new FileReader();
-  r.onload=()=>{ const im=new Image(); im.onload=()=>{
-    const S=160, c=document.createElement('canvas'); c.width=c.height=S; const x=c.getContext('2d');
-    const k=Math.max(S/im.width,S/im.height), w=im.width*k, h=im.height*k; x.drawImage(im,(S-w)/2,(S-h)/2,w,h);
-    PHOTOS[norm(photoTarget)]=c.toDataURL('image/jpeg',.82); store.set('ocheg.photos',PHOTOS); render(); toast(`Photo de ${photoTarget} ajoutée`);
-  }; im.onerror=()=>toast('Cette image ne peut pas être lue'); im.src=r.result; };
-  r.readAsDataURL(f);
 });
 applyTheme();
 render();
