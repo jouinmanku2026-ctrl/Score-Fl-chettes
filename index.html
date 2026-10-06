@@ -344,7 +344,8 @@ const fmt = x => (Math.round(x*10)/10).toFixed(1).replace('.', ',');
 const avg3 = p => p.thrown ? fmt(p.pts / p.thrown * 3) : '0,0';
 function slotLabel(d){ if(d.n===0) return 'Raté'; if(d.n===25) return d.m===2 ? 'Bull' : '25'; return (d.m===3?'T':d.m===2?'D':'S') + d.n; }
 function chipLabel(d){ if(d.n===25) return d.m===2 ? 'Bull' : '25'; return (d.m===3?'T':d.m===2?'D':'') + d.n; }
-const pips = (l, max) => `<span class="pips" aria-label="${l} vies">${'●'.repeat(l)}${'○'.repeat(Math.max(0,max-l))}</span>`;
+const pips = (l, max) => max>5 ? `<span class="pips" aria-label="${l} vies sur ${max}">❤ ${l}</span>` : `<span class="pips" aria-label="${l} vies">${'●'.repeat(l)}${'○'.repeat(Math.max(0,max-l))}</span>`;
+const kMax = g => g.maxLives || g.opts.lives || 3;
 let toastT;
 function toast(msg, ms){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), ms||1800); }
 
@@ -478,33 +479,55 @@ const MODES = {
     rank(g){ return [...g.players].sort((a,b)=>b.t-a.t||a.thrown-b.thrown); }
   },
 
-  shanghai:{ name:'Shanghai', badge:'S', desc:'Un numéro par tour, le Shanghai gagne.', title:()=>'Shanghai',
-    rules:"Au tour 1 on vise le 1, au tour 2 le 2, et ainsi de suite. Seules les fléchettes sur le numéro du tour marquent leur valeur. Toucher le simple, le double et le triple du numéro dans un même tour (un Shanghai) fait gagner immédiatement. Sinon, le meilleur score à la fin l'emporte.",
-    opts:[{k:'rounds',l:'Nombre de tours',c:[[7,'7'],[10,'10'],[20,'20']],d:7}],
-    init(g){ g.players.forEach(p=>{ p.score=0; p.hm=[]; }); },
+  shanghai:{ name:'Shanghai', badge:'S', desc:'Un numéro à la fois, le Shanghai gagne.', title:g=>g.opts.rules==='classic'?'Shanghai':'Shanghai maison',
+    rules:"Règles maison : chacun avance à son rythme en partant du 1. Au moins une touche sur son numéro : on passe au suivant. Un triple fait sauter deux cases de plus (triple 5 : on passe au 8). Trois fléchettes ratées : on redescend d'un numéro. Trois touches de suite : on avance et on rejoue tout de suite. Après le dernier numéro, il faut encore toucher le 25 puis le 50 pour finir : un triple 19 envoie donc directement au 50, et un triple 20 fait finir tout de suite. Le premier qui finit gagne. Règles classiques : tout le monde vise le 1 au tour 1, le 2 au tour 2, etc. ; le meilleur score à la fin gagne. Dans les deux cas, toucher le simple, le double et le triple du même numéro dans un tour (un Shanghai) fait gagner immédiatement.",
+    opts:[{k:'rules',l:'Règles',c:[['maison','Maison'],['classic','Classiques']],d:'maison'},
+          {k:'rounds',l:'Dernier numéro',c:[[7,'7'],[10,'10'],[20,'20']],d:20}],
+    // Maison : cases 1 … dernier numéro, puis 25, puis 50, puis fini.
+    tg(g,p){ if(g.opts.rules==='classic') return g.round; const L=g.opts.rounds; return p.t<=L ? p.t : p.t===L+1 ? 25 : 50; },
+    lab(g,p){ const L=g.opts.rounds; return p.t>L+2 ? '✓' : p.t===L+1 ? '25' : p.t===L+2 ? '50' : p.t; },
+    init(g){ g.players.forEach(p=>{ p.score=0; p.hm=[]; p.t=1; p.hits=0; }); },
     dart(g,p,d){
       p.thrown++;
-      if(d.n!==g.round) return {};
-      p.score+=val(d); if(!p.hm.includes(d.m)) p.hm.push(d.m);
+      const t=this.tg(g,p);
+      if(g.opts.rules!=='classic' && t===50 ? !(d.n===25 && d.m===2) : d.n!==t) return {};
+      p.score+=val(d); p.hits=(p.hits||0)+1; if(d.m===3) p.tripled=true; if(!p.hm.includes(d.m)) p.hm.push(d.m);
       if(p.hm.length===3) return {win:true, note:'Shanghai !', shanghai:true};
       return {hit:1};
     },
-    turnEnd(g,p){ p.hm=[]; },
-    hero(g,p){ return { big:p.score, cap:`Cible : ${g.round}`, sub:'' }; },
-    row(g,p){ return { val:p.score, sub:'' }; },
-    hint(g){ return `<span>Visez</span><span class="chip">${g.round}</span>`; },
-    rel:g=>[g.round],
-    maxRounds:g=>g.opts.rounds,
-    rank(g){ return [...g.players].sort((a,b)=>b.score-a.score); }
+    turnEnd(g,p){
+      if(g.opts.rules!=='classic'){
+        const h=p.hits||0;
+        if(h===0){ if(p.t>1){ p.t--; g.note=`${p.name} redescend au ${p.t}`; } else g.note=`${p.name} reste au 1`; }
+        else {
+          const before=this.lab(g,p);
+          p.t=Math.min(p.t+1+(p.tripled?2:0), g.opts.rounds+3);
+          if(p.tripled) g.note=`Triple ! ${p.name} saute du ${before} au ${this.lab(g,p)}`;
+          if(h>=3 && !this.finished(g,p)){ g.again=true; g.note=(p.tripled?g.note+'. ':'')+`${p.name} enchaîne trois touches et rejoue !`; }
+        }
+      }
+      p.hm=[]; p.hits=0; p.tripled=false;
+    },
+    finished(g,p){ return g.opts.rules!=='classic' && p.t>g.opts.rounds+2; },
+    hero(g,p){ return g.opts.rules==='classic'
+      ? { big:p.score, cap:`Cible : ${g.round}`, sub:'' }
+      : { big:this.lab(g,p), cap: p.t>g.opts.rounds ? (p.t===g.opts.rounds+1 ? 'Cible : la bulle 25, puis le 50 pour finir' : 'Cible : le 50 pour finir !') : `Cible, puis ${g.opts.rounds>p.t?'… '+g.opts.rounds+', ':''}25 et 50`, sub:`${p.score} pts` }; },
+    row(g,p){ return g.opts.rules==='classic' ? { val:p.score, sub:'' } : { val:this.lab(g,p), sub:`${p.score} pts` }; },
+    hint(g,p){ const t=this.tg(g,p); return `<span>Vise</span><span class="chip">${t===25?'Bull 25':t===50?'Bull 50':t}</span>`; },
+    rel(g,p){ const t=this.tg(g,p); return [t===50?25:t]; },
+    maxRounds:g=>g.opts.rules==='classic' ? g.opts.rounds : 0,
+    rank(g){ return g.opts.rules==='classic' ? [...g.players].sort((a,b)=>b.score-a.score) : [...g.players].sort((a,b)=>b.t-a.t||b.score-a.score); }
   },
 
+
   killer:{ name:'Killer', badge:'K', desc:'Devenir tueur, puis éliminer les autres.', title:()=>'Killer', min:3,
-    rules:"Au début, chaque joueur lance une fléchette avec sa main faible : le numéro touché devient le sien (1 à 20, un numéro par joueur, on relance si c'est raté ou déjà pris). Pour devenir tueur, il faut toucher le double de son propre numéro. Chaque joueur a 3 vies. Une fois tueur, chaque touche sur le double du numéro d'un adversaire lui retire une vie. Le dernier joueur encore en vie gagne. 3 joueurs minimum, idéalement 4 à 6.",
-    opts:[{k:'assign',l:'Attribution des numéros',c:[['throw','Lancer main faible'],['random','Au hasard']],d:'throw'},
-          {k:'lives',l:'Vies',c:[[3,'3'],[5,'5']],d:3},
+    rules:"Au début, chaque joueur lance une fléchette avec sa main faible : le numéro touché devient le sien (1 à 20, un numéro par joueur, on relance si c'est raté ou déjà pris). Pour devenir tueur, il faut toucher le double de son propre numéro. Classique : 3 vies, et une fois tueur, chaque double touché sur le numéro d'un adversaire lui retire une vie. Variante 10 vies : une fois tueur, toucher le numéro d'un adversaire lui retire 1 vie en simple, 2 en double et 3 en triple. Le dernier joueur encore en vie gagne. 3 joueurs minimum, idéalement 4 à 6.",
+    opts:[{k:'variant',l:'Variante',c:[['classic','Classique, 3 vies'],['dix','10 vies']],d:'classic'},
+          {k:'assign',l:'Attribution des numéros',c:[['throw','Lancer main faible'],['random','Au hasard']],d:'throw'},
           {k:'self',l:'Toucher son propre double une fois tueur',c:[[0,'Sans effet'],[1,'Coûte une vie']],d:0}],
     init(g){
-      g.players.forEach(p=>{ p.num=null; p.lives=g.opts.lives; p.killer=false; p.out=false; });
+      g.maxLives = g.opts.variant==='dix' ? 10 : 3;
+      g.players.forEach(p=>{ p.num=null; p.lives=g.maxLives; p.killer=false; p.out=false; });
       if(g.opts.assign==='random'){ const nums=shuffle(R20); g.players.forEach((p,i)=>p.num=nums[i]); g.phase='reveal'; }
       else { g.phase='draw'; g.cur=0; }
     },
@@ -519,11 +542,14 @@ const MODES = {
     },
     dart(g,p,d){
       p.thrown++;
-      if(d.n<1 || d.n>20 || d.m!==2) return {};
+      if(d.n<1 || d.n>20) return {};
+      const dix=g.opts.variant==='dix', dmg = dix ? d.m : (d.m===2 ? 1 : 0);
       let res={}, kill=null;
-      const hit=x=>{ x.lives=Math.max(0,x.lives-1); if(!x.lives){ x.out=true; x.outAt=++g.outSeq; kill=x.name; } };
-      if(d.n===p.num){ if(!p.killer){ p.killer=true; res.hit=1; toast(`${p.name} devient tueur !`); } else if(g.opts.self) hit(p); }
-      else { const o=g.players.find(o=>o.num===d.n && !o.out); if(o && p.killer){ hit(o); res.hit=1; } }
+      const hit=(x,a)=>{ if(!a) return; x.lives=Math.max(0,x.lives-a); if(!x.lives){ x.out=true; x.outAt=++g.outSeq; kill=x.name; } };
+      if(d.n===p.num){
+        if(!p.killer){ if(d.m===2){ p.killer=true; res.hit=1; toast(`${p.name} devient tueur !`); } }
+        else if(g.opts.self) hit(p,dmg);
+      } else { const o=g.players.find(o=>o.num===d.n && !o.out); if(o && p.killer && dmg){ hit(o,dmg); res.hit=dmg; if(!kill) toast(`${o.name} perd ${dmg} vie${dmg>1?'s':''}`); } }
       if(kill) res.kill=kill;
       const alive=g.players.filter(x=>!x.out);
       if(alive.length<=1) return {win:true, winner:alive[0]||p};
@@ -532,10 +558,10 @@ const MODES = {
     },
     hero(g,p){
       if(g.phase==='draw') return { big:'?', cap:'Lance une fléchette avec ta main faible, puis touche le numéro obtenu', sub:'Tirage des numéros' };
-      return { big:p.num, cap: p.killer ? 'Ton numéro. Tu es tueur !' : 'Touche le double de ton numéro pour devenir tueur', sub: pips(p.lives,g.opts.lives) }; },
-    row(g,p){ return { val:pips(p.lives,g.opts.lives), sub:`Numéro ${p.num??'?'}`+(p.killer?'<span class="tag">Tueur</span>':'') }; },
-    strip(g,p){ return `<span class="knum">${p.num??'?'}</span>${pips(p.lives,g.opts.lives)}${p.killer?'<span class="ktag">Tueur</span>':''}`; },
-    hint(g,p){ if(g.phase || !p.killer) return g.phase?'':`<span>Vise</span><span class="chip">D${p.num}</span>`; const t=g.players.filter(o=>o!==p && !o.out).map(o=>`<span class="chip">D${o.num}</span>`); return t.length?'<span>Cibles :</span>'+t.join(''):''; },
+      return { big:p.num, cap: p.killer ? 'Ton numéro. Tu es tueur !' : 'Touche le double de ton numéro pour devenir tueur', sub: pips(p.lives,kMax(g)) }; },
+    row(g,p){ return { val:pips(p.lives,kMax(g)), sub:`Numéro ${p.num??'?'}`+(p.killer?'<span class="tag">Tueur</span>':'') }; },
+    strip(g,p){ return `<span class="knum">${p.num??'?'}</span>${pips(p.lives,kMax(g))}${p.killer?'<span class="ktag">Tueur</span>':''}`; },
+    hint(g,p){ if(g.phase || !p.killer) return g.phase?'':`<span>Vise</span><span class="chip">D${p.num}</span>`; const t=g.players.filter(o=>o!==p && !o.out).map(o=>`<span class="chip">${g.opts.variant==='dix'?'':'D'}${o.num}</span>`); return t.length?'<span>Cibles :</span>'+t.join(''):''; },
     rel:g=>g.phase ? null : g.players.filter(p=>!p.out).map(p=>p.num),
     rank(g){ return [...g.players].sort((a,b)=> (a.out-b.out) || (a.out ? b.outAt-a.outAt : b.lives-a.lives)); }
   },
@@ -606,6 +632,8 @@ const save = () => store.set('ocheg.game', {G, H:H.slice(-80)});
 const OLD_DEF = ["{nom}, espèce de merguez !","Floppeur !","{nom}, t'es nul !","Trois fléchettes, zéro point. Bravo la merguez.","Rentre chez toi, {nom}.","Même ma grand-mère fait mieux.","{nom}, tu vises la planche ou le mur ?","Bien joué {nom} !","Quel tir !","{nom}, la machine !","Magnifique !","Ça c'est du lancer !","Respect {nom} !"];
 const DEF_TAUNTS = ["Ah non... {nom}, sérieux ?","Mais quelle merguez, ce {nom}...","Floppeur, va !","Bon... on va dire que c'était l'échauffement.","Aïe. Rien. Le néant total.","Oh là là, {nom}... c'est dur à regarder, hein.","{nom}, t'as les yeux ouverts, au moins ?","Ma grand-mère, elle fait mieux. Et elle a quatre-vingt-dix ans.","Allez, {nom}... on respire, et on oublie ça.","Euh... c'était voulu, ça ?"];
 const DEF_CHEERS = ["Ohhh, mais c'est beau, ça !","Ah ouais ! D'accord, {nom} !","Pas mal... pas mal du tout !","Mais qu'est-ce qu'il nous fait, {nom} ?!","Allez, là ! Ça, c'est propre.","Oh la vache, {nom} est chaud ce soir !","Bon, ben... chapeau, {nom}."];
+const MORE_TAUNTS_PRE = ["{nom}, tu lances ou tu fais coucou à la cible ?","Le principal c'est de participer, {nom}. Enfin... de participer un peu.","Elle est où ta fléchette, {nom} ? Dans le bar d'à côté ?","{nom}, même les pigeons ont eu peur.","On appelle les secours, ou ça va aller, {nom} ?","{nom}, la tournée, c'est pour toi ce soir.","Applaudissements polis pour {nom}... très polis.","{nom}, la cible est ronde, hein. Pas carrée.","Raté, raté... et raté. Belle régularité, {nom}.","{nom}, c'est un nouveau sport, là ?","Mamie Ginette, en déambulateur, fait mieux.","{nom}, rassure-moi, c'était un tir d'échauffement ?","Là, {nom}, même le mur a eu de la peine pour toi."];
+const MORE_CHEERS_PRE = ["{nom}, tu nous caches un entraînement secret ?","Ça, c'est un tir de pro, {nom} !","Range ton portefeuille, {nom} : c'est les autres qui payent !","{nom} est en mode sniper !","Mais il est en feu, {nom} !","Les autres peuvent rentrer chez eux.","Respect, {nom}. Gros respect.","Quelqu'un a vu ça ? {nom}, refais-le, j'ai pas filmé !"];
 const PERSO_TAUNTS = [
  "Charles: Charles, même le général de Gaulle visait mieux.",
  "Charles: Charles le Chauve... de points.",
@@ -628,7 +656,16 @@ const PERSO_CHEERS = [
  "Grégoire: Saint Grégoire, priez pour nous, il est en feu !",
  "Simon: Jacques a dit : applaudissez Simon !",
  "Simon: Simon, le patron !"];
-let SET = Object.assign({on:true, voice:true, fx:true, gifGood:'', gifBad:'', taunts:[...DEF_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...PERSO_CHEERS].join('\n'), v:3}, store.get('ocheg.sound',{}));
+let SET = Object.assign({fart:true, jv:1, on:true, voice:true, fx:true, gifGood:'', gifBad:'', taunts:[...DEF_TAUNTS,...MORE_TAUNTS_PRE,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...MORE_CHEERS_PRE,...PERSO_CHEERS].join('\n'), v:3}, store.get('ocheg.sound',{}));
+const MORE_TAUNTS = MORE_TAUNTS_PRE;
+const MORE_CHEERS = MORE_CHEERS_PRE;
+const FART_LINES = ["Oups... c'est {nom} ou c'est son tour qui sent ?","Ce tour méritait bien un petit bruit, {nom}.","Même ton derrière est déçu, {nom}.","{nom}, ça sent pas bon... et je parle pas que du score.","Pardon. C'était un commentaire sur le tour de {nom}."];
+if(!SET.jv){
+  const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
+  SET.taunts=add(SET.taunts,MORE_TAUNTS); SET.cheers=add(SET.cheers,MORE_CHEERS); SET.jv=1;
+  if(SET.fart===undefined) SET.fart=true;
+  store.set('ocheg.sound', SET);
+}
 if(SET.v===2){
   const fix=(txt,defs)=>{ const keep=String(txt||'').split('\n').filter(l=>l && !OLD_DEF.includes(l)); return [...defs, ...keep.filter(l=>!defs.includes(l))].join('\n'); };
   SET.taunts=fix(SET.taunts,DEF_TAUNTS); SET.cheers=fix(SET.cheers,DEF_CHEERS); SET.v=3; store.set('ocheg.sound',SET);
@@ -720,6 +757,27 @@ function boo(level){
   }
   return dur;
 }
+function fart(){
+  const c=ac(); if(!c) return 0; const t0=c.currentTime+.02, out=master(c,.9);
+  const bursts=1+Math.floor(Math.random()*3); let t=t0;
+  for(let b=0;b<bursts;b++){
+    const d = b===bursts-1 ? .5+Math.random()*.7 : .12+Math.random()*.2, f=60+Math.random()*50;
+    const o=c.createOscillator(); o.type='sawtooth';
+    o.frequency.setValueAtTime(f*1.3,t); o.frequency.exponentialRampToValueAtTime(f*.7,t+d);
+    const fl=c.createOscillator(); fl.type='square'; fl.frequency.setValueAtTime(18+Math.random()*12,t); fl.frequency.linearRampToValueAtTime(9,t+d);
+    const flg=c.createGain(); flg.gain.value=f*.35; fl.connect(flg); flg.connect(o.frequency);
+    const am=c.createGain(); am.gain.value=.6; const amg=c.createGain(); amg.gain.value=.4; fl.connect(amg); amg.connect(am.gain);
+    const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.Q.value=4; lp.frequency.setValueAtTime(900,t); lp.frequency.linearRampToValueAtTime(330,t+d);
+    const env=c.createGain(); env.gain.setValueAtTime(.0001,t); env.gain.exponentialRampToValueAtTime(.7,t+.03); env.gain.setValueAtTime(.6,t+d*.7); env.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(am).connect(lp).connect(env).connect(out);
+    const nb=c.createBiquadFilter(); nb.type='bandpass'; nb.frequency.value=280; nb.Q.value=1.5; const ng=c.createGain(); ng.gain.value=.25;
+    noise(c,t,d).connect(nb).connect(ng).connect(env);
+    o.start(t); o.stop(t+d+.02); fl.start(t); fl.stop(t+d+.02);
+    t += d+.06+Math.random()*.08;
+  }
+  return t-t0;
+}
+const fartLine = nom => rnd(FART_LINES).replace(/\{nom\}/g, nom);
 function trombone(){
   const c=ac(); if(!c) return 0; const t0=c.currentTime+.05, out=master(c,.5);
   [[293.7,.42],[277.2,.42],[261.6,.42],[246.9,1.3]].reduce((t,[f,d],i)=>{
@@ -821,10 +879,10 @@ const taunt = nom => pick(SET.taunts, DEF_TAUNTS, nom);
 const praise = nom => pick(SET.cheers, DEF_CHEERS, nom);
 /* Vannes propres à chaque mode de jeu ; {cible} devient le numéro visé ce tour. */
 const MODE_LINES = {
-  shanghai:{ taunt:["Raté ! Le {cible}, il était juste là, {nom}...","Shanghaï ? Non. Shang-raté.","{nom}, on vise le {cible}, pas le mur.","La Chine c'est loin, {nom}... mais le {cible}, franchement, non."],
-             cheer:["Dans le {cible}, {nom} !","Ça sent le Shanghaï, ça...","{nom} connaît le chemin du {cible} !","Encore un effort et c'est le Shanghaï, {nom} !"] },
-  killer:{ taunt:["{nom}, même pas un double... les autres respirent.","Le tueur le plus gentil du monde : {nom}.","{nom}, t'as oublié les balles dans le pistolet ?"],
-           cheer:["{nom} sort le couteau !","Attention, {nom} est en chasse !","Planquez-vous, {nom} vise juste !"] },
+  shanghai:{ taunt:["Raté ! Le {cible}, il était juste là, {nom}...","{nom}, le {cible} t'a fait quoi pour que tu l'évites comme ça ?","Ça descend, {nom}... comme l'ascenseur.","Shanghaï ? Non. Shang-raté.","{nom}, on vise le {cible}, pas le mur.","La Chine c'est loin, {nom}... mais le {cible}, franchement, non."],
+             cheer:["Dans le {cible}, {nom} !","{nom} grimpe comme un chamois !","Plus que quelques cases, {nom}, ça sent la fin !","Ça sent le Shanghaï, ça...","{nom} connaît le chemin du {cible} !","Encore un effort et c'est le Shanghaï, {nom} !"] },
+  killer:{ taunt:["{nom}, même pas un double... les autres respirent.","Tueur ? Plutôt chatouilleur, {nom}.","{nom}, avec un pistolet à eau tu ferais plus de dégâts.","Le tueur le plus gentil du monde : {nom}.","{nom}, t'as oublié les balles dans le pistolet ?"],
+           cheer:["{nom} sort le couteau !","Ça saigne, {nom} ne fait pas de quartier !","Appelez la police, {nom} fait un carnage !","Attention, {nom} est en chasse !","Planquez-vous, {nom} vise juste !"] },
   cricket:{ taunt:["{nom}, au cricket on ferme les numéros, pas les yeux.","Rien de fermé, {nom}... à part ton score."],
             cheer:["{nom} ferme tout, c'est un videur !","Propre, {nom}, ça ferme sec !"] },
   atc:{ taunt:["{nom}, l'horloge tourne... et toi tu bouges pas.","Tic-tac, {nom}. Toujours au même numéro."],
@@ -835,7 +893,7 @@ const MODE_LINES = {
 function joke(mood, nom){
   const L = G && MODE_LINES[G.mode] && MODE_LINES[G.mode][mood];
   if(L && Math.random()<.5){
-    const cible = G.mode==='shanghai' ? G.round : G.mode==='bobs' ? (G.round<=20?'D'+G.round:'centre') : '';
+    const cible = G.mode==='shanghai' ? MODES.shanghai.tg(G, G.players[G.cur]) : G.mode==='bobs' ? (G.round<=20?'D'+G.round:'centre') : '';
     return rnd(L).replace(/\{nom\}/g, nom).replace(/\{cible\}/g, cible);
   }
   return mood==='cheer' ? praise(nom) : taunt(nom);
@@ -850,7 +908,9 @@ function react(kind, nom){
   }[kind];
   const mood = ({great:'cheer', good:'cheer', bad:'taunt', zero:'taunt', bust:'taunt'})[kind];
   // La phrase affichée sous l'animation est la même que celle dite par la voix.
-  const line = mood ? accentize(joke(mood, nom), nom, mood) : '';
+  // Parfois, sur un mauvais tour : un pet à la place de la voix.
+  const farting = SET.on && SET.fart && (kind==='bad'||kind==='zero') && Math.random()<.3;
+  const line = farting ? fartLine(nom) : mood ? accentize(joke(mood, nom), nom, mood) : '';
   const spoken = {
     max:'Cent quatre-vingts !', great:line, good:line, bad:line, zero:line, bust:'Bust ! '+line,
     kill:`Au revoir ${nom} !`, leg:`Manche pour ${nom} !`, win:`Victoire de ${nom} !`,
@@ -861,6 +921,7 @@ function react(kind, nom){
   if(!SET.on) return;
   // Soit la voix, soit le bruit : jamais les deux en même temps.
   const big = ['max','win','shanghai','leg','end'].includes(kind);
+  if(farting){ fart(); return; }
   if(!big && SET.voice && spoken) say(spoken, kind==='max'?.85:0, 0, snd, accOf(nom));
   else snd && snd();
 }
@@ -977,6 +1038,8 @@ function nextTurn(){
   const p=G.players[G.cur];
   if(M().turnEnd) M().turnEnd(G,p);
   const note=G.note; G.note='';
+  if(M().finished && M().finished(G,p)){ endGame(p); if(note) toast(note); return; }
+  if(G.again){ G.again=false; G.darts=[]; G.turnDone=false; G.bust=false; G.turnHits=0; save(); render(); if(note) toast(note); return; }
   const ni=nextIdx(G.cur);
   if(ni===-1){ endGame(null); if(note) toast(note); return; }
   const n=G.players.length, pos=i=>(i-G.starter+n)%n;
@@ -1016,7 +1079,8 @@ function homeHTML(){
     <section class="group"><h2>Modes de jeu</h2><div class="card">${ml}</div></section>
     <section class="group"><h2>Animations, sons et voix</h2><div class="card">
       <div class="srow"><span><b>Animations</b><small>Une scène plein écran après chaque gros tour ou gros raté</small></span><button class="sw" role="switch" aria-checked="${SET.fx}" aria-label="Animations" data-a="tog" data-k="fx"></button></div>
-      <div class="srow"><span><b>Sons</b><small>Acclamations, huées et trombone triste</small></span><button class="sw" role="switch" aria-checked="${SET.on}" aria-label="Sons" data-a="tog" data-k="on"></button></div>
+      <div class="srow"><span><b>Sons</b><small>Klaxon, huées et trombone triste</small></span><button class="sw" role="switch" aria-checked="${SET.on}" aria-label="Sons" data-a="tog" data-k="on"></button></div>
+      <div class="srow"><span><b>Bruits de pet</b><small>De temps en temps, sur un mauvais tour</small></span><button class="sw" role="switch" aria-checked="${SET.fart}" aria-label="Bruits de pet" data-a="tog" data-k="fart" ${SET.on?'':'disabled'}></button></div>
       <div class="srow"><span><b>Voix du commentateur</b><small>Une fois sur deux, la vanne est dite à voix haute à la place du bruit</small></span><button class="sw" role="switch" aria-checked="${SET.voice}" aria-label="Voix" data-a="tog" data-k="voice" ${SET.on?'':'disabled'}></button></div>
       <div class="tarea"><label for="ta-t">Phrases pour chambrer</label><textarea id="ta-t" data-k="taunts" rows="5">${esc(SET.taunts)}</textarea>
         <label for="ta-c">Phrases de félicitations</label><textarea id="ta-c" data-k="cheers" rows="4">${esc(SET.cheers)}</textarea>
@@ -1025,6 +1089,7 @@ function homeHTML(){
         <label for="ta-gm">Mes GIF quand ça rate</label><textarea id="ta-gm" data-k="gifBad" rows="2" placeholder="https://…gif">${esc(SET.gifBad)}</textarea>
         <small>Facultatif. Collez un lien direct vers un GIF par ligne. Ils remplacent parfois les animations intégrées.</small></div>
       <div class="pactions"><button data-a="test" data-k="great">Gros tour</button><button data-a="test" data-k="zero">Triple zéro</button><button data-a="test" data-k="win">Victoire</button><button data-a="testv">Voix</button></div>
+      <div class="pactions"><button data-a="testf">Tester le prout</button></div>
       ${Object.keys(PHOTOS).length?'<div class="pactions"><button data-a="clrph">Retirer les photos</button></div>':''}
     </div></section>
     <p class="foot">Les parties sont enregistrées sur cet appareil.<br><button data-a="theme">Thème : ${({auto:'automatique',light:'clair',dark:'sombre'})[store.get('ocheg.theme','auto')]}</button></p>
@@ -1092,10 +1157,11 @@ function padHTML(){
   if(G.turnDone && !G.over){
     const ni=nextIdx(G.cur), tot=G.darts.reduce((a,d)=>a+val(d),0); const pointsMode=['x01','countup','shanghai','halve'].includes(G.mode);
     const nextName = ni>-1 ? G.players[ni].name : '';
-    const same = ni===G.cur;
+    const again = G.mode==='shanghai' && G.opts.rules!=='classic' && (G.players[G.cur].hits||0)>=3 && G.players[G.cur].t+1+(G.players[G.cur].tripled?2:0)<=G.opts.rounds+2;
+    const same = ni===G.cur || again;
     return `<div class="pad"><div class="done">
       <div class="sum${G.bust?' bust':''}">${G.bust?'Bust':pointsMode?tot:(G.turnHits||0)}<small>${G.bust?'Le tour ne compte pas':pointsMode?'points ce tour':G.mode==='cricket'?((G.turnHits||0)>1?'marques ce tour':'marque ce tour'):((G.turnHits||0)>1?'touches utiles':'touche utile')}</small></div>
-      <button class="primary go" data-a="next">${same?'Tour suivant':'Au tour de '+esc(nextName)}</button>
+      <button class="primary go" data-a="next">${again?esc(G.players[G.cur].name)+' rejoue !':same?'Tour suivant':'Au tour de '+esc(nextName)}</button>
       <button class="ghost" data-a="undo">Corriger la dernière fléchette</button>
     </div></div>`;
   }
@@ -1183,6 +1249,7 @@ document.addEventListener('click', e=>{
     case 'showres': resultsHidden=false; render(); break;
     case 'hideres': resultsHidden=true; render(); break;
     case 'replay': { const names=G.players.map(p=>p.name); names.push(names.shift()); newGame(G.mode,{...G.opts},names); break; }
+    case 'testf': if(!SET.on){ toast('Activez les sons pour tester'); break; } hush(); fart(); toast('💨 '+fartLine(players[0]||'Joueur 1'), 3000); break;
     case 'snd': SET.on=!SET.on; saveSet(); if(!SET.on) hush(); else tock(false); render(); break;
     case 'tog': SET[b.dataset.k]=!SET[b.dataset.k]; saveSet(); if(!SET.on||!SET.voice) hush(); render(); break;
     case 'test': { const nom=players[0]||'Joueur 1'; react(b.dataset.k, nom); if(!SET.fx) toast('Activez les animations pour les voir'); break; }
