@@ -160,11 +160,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--green);outline-
 .sc.out{opacity:.4}
 .scn{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .scv{display:block;font:700 26px/1.05 'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
-.scv .pips{font-size:12px;letter-spacing:1px}
+.scv .pips{font-size:19px;letter-spacing:0;line-height:1.3}
+.psub .pips{font-size:30px;letter-spacing:1px;line-height:1}
+.oval .pips,.rv .pips{font-size:22px}
 .scs{display:block;font-size:11px;color:var(--muted)}
 .hero.compact .big,.hero.compact .cap,.hero.compact .hint:empty{display:none}
 .hero.compact .slots{margin-top:10px}
-.knum{display:block;font:800 28px/1 'Barlow Condensed',sans-serif}
+.knum{display:block;font:800 30px/1 'Barlow Condensed',sans-serif}
 .ktag{display:block;font:700 11px 'Barlow',sans-serif;color:var(--red);letter-spacing:.3px;text-transform:uppercase}
 .reveal{background:var(--surface);border-radius:22px;padding:16px 18px;margin-bottom:10px}
 .reveal h3{font:800 32px/1 'Barlow Condensed',sans-serif;margin:0 0 10px}
@@ -344,7 +346,7 @@ const fmt = x => (Math.round(x*10)/10).toFixed(1).replace('.', ',');
 const avg3 = p => p.thrown ? fmt(p.pts / p.thrown * 3) : '0,0';
 function slotLabel(d){ if(d.n===0) return 'Raté'; if(d.n===25) return d.m===2 ? 'Bull' : '25'; return (d.m===3?'T':d.m===2?'D':'S') + d.n; }
 function chipLabel(d){ if(d.n===25) return d.m===2 ? 'Bull' : '25'; return (d.m===3?'T':d.m===2?'D':'') + d.n; }
-const pips = (l, max) => max>5 ? `<span class="pips" aria-label="${l} vies sur ${max}">❤ ${l}</span>` : `<span class="pips" aria-label="${l} vies">${'●'.repeat(l)}${'○'.repeat(Math.max(0,max-l))}</span>`;
+const pips = (l, max) => max>5 ? `<span class="pips" aria-label="${l} vies sur ${max}">❤️ ${l}</span>` : `<span class="pips" aria-label="${l} vies">${'❤️'.repeat(l)}${'🤍'.repeat(Math.max(0,max-l))}</span>`;
 const kMax = g => g.maxLives || g.opts.lives || 3;
 let toastT;
 function toast(msg, ms){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), ms||1800); }
@@ -549,7 +551,7 @@ const MODES = {
       if(d.n===p.num){
         if(!p.killer){ if(d.m===2){ p.killer=true; res.hit=1; toast(`${p.name} devient tueur !`); } }
         else if(g.opts.self) hit(p,dmg);
-      } else { const o=g.players.find(o=>o.num===d.n && !o.out); if(o && p.killer && dmg){ hit(o,dmg); res.hit=dmg; if(!kill) toast(`${o.name} perd ${dmg} vie${dmg>1?'s':''}`); } }
+      } else { const o=g.players.find(o=>o.num===d.n && !o.out); if(o && p.killer && dmg){ hit(o,dmg); res.hit=dmg; res.victim=o.name; res.dmg=dmg; } }
       if(kill) res.kill=kill;
       const alive=g.players.filter(x=>!x.out);
       if(alive.length<=1) return {win:true, winner:alive[0]||p};
@@ -634,6 +636,8 @@ const DEF_TAUNTS = ["Ah non... {nom}, sérieux ?","Mais quelle merguez, ce {nom}
 const DEF_CHEERS = ["Ohhh, mais c'est beau, ça !","Ah ouais ! D'accord, {nom} !","Pas mal... pas mal du tout !","Mais qu'est-ce qu'il nous fait, {nom} ?!","Allez, là ! Ça, c'est propre.","Oh la vache, {nom} est chaud ce soir !","Bon, ben... chapeau, {nom}."];
 const MORE_TAUNTS_PRE = ["{nom}, tu lances ou tu fais coucou à la cible ?","Le principal c'est de participer, {nom}. Enfin... de participer un peu.","Elle est où ta fléchette, {nom} ? Dans le bar d'à côté ?","{nom}, même les pigeons ont eu peur.","On appelle les secours, ou ça va aller, {nom} ?","{nom}, la tournée, c'est pour toi ce soir.","Applaudissements polis pour {nom}... très polis.","{nom}, la cible est ronde, hein. Pas carrée.","Raté, raté... et raté. Belle régularité, {nom}.","{nom}, c'est un nouveau sport, là ?","Mamie Ginette, en déambulateur, fait mieux.","{nom}, rassure-moi, c'était un tir d'échauffement ?","Là, {nom}, même le mur a eu de la peine pour toi."];
 const MORE_CHEERS_PRE = ["{nom}, tu nous caches un entraînement secret ?","Ça, c'est un tir de pro, {nom} !","Range ton portefeuille, {nom} : c'est les autres qui payent !","{nom} est en mode sniper !","Mais il est en feu, {nom} !","Les autres peuvent rentrer chez eux.","Respect, {nom}. Gros respect.","Quelqu'un a vu ça ? {nom}, refais-le, j'ai pas filmé !"];
+const MORE2_TAUNTS = ["{nom}, t'as visé la cible d'à côté ?","Si c'était du bowling, {nom}, t'aurais fait une gouttière.","{nom}, on t'a dit de viser le centre, pas le plafond.","C'est pas grave, {nom}. Enfin si, un peu.","{nom} vient d'inventer le tir à l'aveugle.","Bon ben... au moins t'as pas blessé quelqu'un, {nom}.","{nom}, tes fléchettes ont le mal de mer ?","Silence gêné pour {nom}.","{nom}, tu joues pour l'autre équipe ?","Une fléchette, {nom}, c'est pointu d'un côté. Le bon côté.","Ça s'appelle une cible, {nom}. C'est pour viser dedans.","{nom}, si tu veux on te rapproche la cible.","Ah, {nom}... on va mettre ça sur le compte de la fatigue.","{nom}, même avec trois mains tu ferais pas pire.","Le score de {nom}, c'est comme son compte en banque : dans le rouge.","{nom}, ton tour était tellement nul qu'il a fait pleurer la cible."];
+const MORE2_CHEERS = ["{nom}, tu signes des autographes après ?","Chapeau bas, {nom}. Et même la casquette.","{nom}, t'as mangé du lion ce midi ?","Ça c'est envoyé, {nom} !","Le patron est dans la place : {nom} !","{nom}, c'est de la dentelle, ça !","Tout le monde à genoux devant {nom} !","Pas de chance pour les autres : {nom} est en forme.","{nom}, faut te mettre à la télé !","Propre, net, sans bavure. Signé {nom}."];
 const PERSO_TAUNTS = [
  "Charles: Charles, même le général de Gaulle visait mieux.",
  "Charles: Charles le Chauve... de points.",
@@ -656,7 +660,7 @@ const PERSO_CHEERS = [
  "Grégoire: Saint Grégoire, priez pour nous, il est en feu !",
  "Simon: Jacques a dit : applaudissez Simon !",
  "Simon: Simon, le patron !"];
-let SET = Object.assign({fart:true, jv:1, on:true, voice:true, fx:true, gifGood:'', gifBad:'', taunts:[...DEF_TAUNTS,...MORE_TAUNTS_PRE,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...MORE_CHEERS_PRE,...PERSO_CHEERS].join('\n'), v:3}, store.get('ocheg.sound',{}));
+let SET = Object.assign({brutal:true, dark:true, fart:true, jv:2, on:true, voice:true, fx:true, gifGood:'', gifBad:'', taunts:[...DEF_TAUNTS,...MORE_TAUNTS_PRE,...MORE2_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...DEF_CHEERS,...MORE_CHEERS_PRE,...MORE2_CHEERS,...PERSO_CHEERS].join('\n'), v:3}, store.get('ocheg.sound',{}));
 const MORE_TAUNTS = MORE_TAUNTS_PRE;
 const MORE_CHEERS = MORE_CHEERS_PRE;
 const FART_LINES = ["Oups... c'est {nom} ou c'est son tour qui sent ?","Ce tour méritait bien un petit bruit, {nom}.","Même ton derrière est déçu, {nom}.","{nom}, ça sent pas bon... et je parle pas que du score.","Pardon. C'était un commentaire sur le tour de {nom}."];
@@ -666,6 +670,11 @@ if(!SET.jv){
   if(SET.fart===undefined) SET.fart=true;
   store.set('ocheg.sound', SET);
 }
+if((SET.jv||0)<2){
+  const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
+  SET.taunts=add(SET.taunts,MORE2_TAUNTS); SET.cheers=add(SET.cheers,MORE2_CHEERS); SET.jv=2; store.set('ocheg.sound', SET);
+}
+if(SET.brutal===undefined){ SET.brutal=true; SET.dark=true; store.set('ocheg.sound', SET); }
 if(SET.v===2){
   const fix=(txt,defs)=>{ const keep=String(txt||'').split('\n').filter(l=>l && !OLD_DEF.includes(l)); return [...defs, ...keep.filter(l=>!defs.includes(l))].join('\n'); };
   SET.taunts=fix(SET.taunts,DEF_TAUNTS); SET.cheers=fix(SET.cheers,DEF_CHEERS); SET.v=3; store.set('ocheg.sound',SET);
@@ -777,6 +786,77 @@ function fart(){
   }
   return t-t0;
 }
+function bark(){
+  const c=ac(); if(!c) return 0; const t0=c.currentTime+.02, out=master(c,1.7), n=2+Math.floor(Math.random()*2);
+  for(let i=0;i<n;i++){
+    const t=t0+i*.26, o=c.createOscillator(), bp=c.createBiquadFilter(), g=c.createGain();
+    o.type='sawtooth'; o.frequency.setValueAtTime(520,t); o.frequency.exponentialRampToValueAtTime(260,t+.13);
+    bp.type='bandpass'; bp.frequency.setValueAtTime(1100,t); bp.frequency.linearRampToValueAtTime(700,t+.13); bp.Q.value=2.5;
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.9,t+.012); g.gain.exponentialRampToValueAtTime(.0001,t+.16);
+    o.connect(bp).connect(g).connect(out); o.start(t); o.stop(t+.18);
+    const nb=c.createBiquadFilter(); nb.type='bandpass'; nb.frequency.value=1600; nb.Q.value=1; const ng=c.createGain(); ng.gain.setValueAtTime(.35,t); ng.gain.exponentialRampToValueAtTime(.0001,t+.08);
+    noise(c,t,.1).connect(nb).connect(ng).connect(out);
+  }
+  return n*.26;
+}
+function howl(){
+  const c=ac(); if(!c) return 0; const t=c.currentTime+.02, out=master(c,1.8), D=1.9;
+  const o=c.createOscillator(); o.type='triangle';
+  o.frequency.setValueAtTime(330,t); o.frequency.exponentialRampToValueAtTime(720,t+.55); o.frequency.setValueAtTime(720,t+1.1); o.frequency.exponentialRampToValueAtTime(420,t+D);
+  const v=c.createOscillator(), vg=c.createGain(); v.frequency.value=5.5; vg.gain.value=9; v.connect(vg); vg.connect(o.frequency);
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.setValueAtTime(600,t); bp.frequency.linearRampToValueAtTime(1100,t+.6); bp.Q.value=1.2;
+  const g=c.createGain(); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.8,t+.3); g.gain.setValueAtTime(.7,t+1.3); g.gain.exponentialRampToValueAtTime(.0001,t+D);
+  o.connect(bp).connect(g).connect(out); o.start(t); o.stop(t+D+.05); v.start(t); v.stop(t+D+.05);
+  return D;
+}
+function quack(){
+  const c=ac(); if(!c) return 0; const t0=c.currentTime+.02, out=master(c,3.2);
+  [0,.24].forEach(d=>{ const t=t0+d, o=c.createOscillator(), bp=c.createBiquadFilter(), g=c.createGain();
+    o.type='sawtooth'; o.frequency.setValueAtTime(300,t); o.frequency.linearRampToValueAtTime(220,t+.17);
+    bp.type='bandpass'; bp.frequency.value=1300; bp.Q.value=5;
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(1,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+.18);
+    o.connect(bp).connect(g).connect(out); o.start(t); o.stop(t+.2); });
+  return .45;
+}
+function slideDown(){
+  const c=ac(); if(!c) return 0; const t=c.currentTime+.02, out=master(c,.8), D=.9;
+  const o=c.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(1500,t); o.frequency.exponentialRampToValueAtTime(260,t+D);
+  const v=c.createOscillator(), vg=c.createGain(); v.frequency.value=7; vg.gain.value=25; v.connect(vg); vg.connect(o.frequency);
+  const g=c.createGain(); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.8,t+.05); g.gain.setValueAtTime(.7,t+D-.15); g.gain.exponentialRampToValueAtTime(.0001,t+D);
+  o.connect(g).connect(out); o.start(t); o.stop(t+D+.02); v.start(t); v.stop(t+D+.02);
+  return D;
+}
+function boing(){
+  const c=ac(); if(!c) return 0; const t=c.currentTime+.02, out=master(c,.6), D=.7;
+  const o=c.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(420,t+.12); o.frequency.exponentialRampToValueAtTime(260,t+D);
+  const w=c.createOscillator(), wg=c.createGain(); w.frequency.value=16; wg.gain.setValueAtTime(70,t); wg.gain.exponentialRampToValueAtTime(1,t+D); w.connect(wg); wg.connect(o.frequency);
+  const g=c.createGain(); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.9,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+D);
+  o.connect(g).connect(out); o.start(t); o.stop(t+D+.02); w.start(t); w.stop(t+D+.02);
+  return D;
+}
+function shortFart(){ const c=ac(); if(!c) return 0; const t=c.currentTime+.02, out=master(c,.9), d=.35+Math.random()*.25, f=70+Math.random()*40;
+  const o=c.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(f*1.2,t); o.frequency.exponentialRampToValueAtTime(f*.7,t+d);
+  const fl=c.createOscillator(); fl.type='square'; fl.frequency.value=22; const flg=c.createGain(); flg.gain.value=f*.35; fl.connect(flg); flg.connect(o.frequency);
+  const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.Q.value=4; lp.frequency.value=700;
+  const g=c.createGain(); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.8,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(lp).connect(g).connect(out); o.start(t); o.stop(t+d+.02); fl.start(t); fl.stop(t+d+.02); return d; }
+// Petits bruits joués juste avant une vanne.
+const FX_TAUNT = [shortFart, shortFart, quack, slideDown, bark];
+const FX_CHEER = [howl, bark, boing];
+/* Killer : phrases quand on vise quelqu'un ({a} = celui qui tire, {v} = la cible). */
+const RIVAL_LINES = ["{a} vise {v}... il y a un contentieux entre vous ?","Ouh là, {a} n'aime pas {v}, c'est officiel.","{v}, tu lui as fait quoi, à {a} ?","{a} règle ses comptes avec {v}.","C'est personnel entre {a} et {v}, là.","{a}, t'as pas digéré un truc avec {v}, hein ?","{v} ne sera pas invité à l'anniversaire de {a}.","Ambiance : {a} déclare la guerre à {v}.","{a} tire sur {v}. Quelqu'un appelle un médiateur ?","{v}, prends-le pas mal... enfin si, prends-le mal.","{a} vient de rayer {v} de sa liste de Noël.","Entre {a} et {v}, c'est plus de l'amitié, c'est de la vengeance."];
+const GRUDGE_LINES = ["Encore {v} ? {a}, c'est de l'acharnement !","{a} a clairement une dent contre {v}.","Mais lâche {v}, {a} ! Il t'a rien fait... si ?","{a} et {v}, on sent la vieille rancune.","Troisième fois que {a} vise {v}. On veut l'histoire !"];
+const KILL_LINES = ["{a} a éliminé {v}. C'était personnel.","Au revoir {v}. Et merci qui ? Merci {a}.","{v} est out. {a} ne regrette rien.","Repose en paix, {v}. Signé : {a}."];
+function rivalLine(list, a, v){ return rnd(list).replace(/\{a\}/g,a).replace(/\{v\}/g,v); }
+function reactRival(a, v, killed){
+  G.grudge = G.grudge || {}; const k=norm(a)+'>'+norm(v); G.grudge[k]=(G.grudge[k]||0)+1;
+  const line = killed ? rivalLine(SET.dark && Math.random()<(SET.brutal?.75:.5) ? [...DARK_KILL, ...(SET.brutal?HARSH_KILL:[])] : KILL_LINES,a,v) : rivalLine(G.grudge[k]>=2 && Math.random()<.6 ? GRUDGE_LINES : RIVAL_LINES, a, v);
+  G.rivalSaid = true;
+  toast('🎯 '+line, 3600);
+  if(!SET.on) return;
+  hush();
+  if(SET.voice) say(line, 0, 0, ()=>cheer(.4), accOf(a)); else cheer(.4);
+}
 const fartLine = nom => rnd(FART_LINES).replace(/\{nom\}/g, nom);
 function trombone(){
   const c=ac(); if(!c) return 0; const t0=c.currentTime+.05, out=master(c,.5);
@@ -852,8 +932,8 @@ function accentize(text, nom, mood){
   return rnd(T.pre) + text + rnd(T.post);
 }
 try{ if(window.speechSynthesis) speechSynthesis.onvoiceschanged=()=>{}; }catch(e){}
-let sayT=null;
-function say(text, rate, pitch, fallback, acc){
+let sayT=null, sayD=null;
+function say(text, rate, pitch, fallback, acc, delay){
   const ss=window.speechSynthesis;
   if(!ss || typeof SpeechSynthesisUtterance==='undefined'){ fallback && fallback(); return false; }
   try{
@@ -868,29 +948,41 @@ function say(text, rate, pitch, fallback, acc){
     const fb=()=>{ if(done) return; done=true; clearTimeout(sayT); fallback && fallback(); };
     u.onstart=()=>{ started=true; clearTimeout(sayT); };
     u.onerror=()=>{ if(!started) fb(); };
-    clearTimeout(sayT);
-    sayT=setTimeout(()=>{ if(!started){ try{ ss.cancel(); }catch(e){} fb(); } }, 1500);
-    ss.speak(u);
+    const go=()=>{ clearTimeout(sayT); sayT=setTimeout(()=>{ if(!started){ try{ ss.cancel(); }catch(e){} fb(); } }, 1500); try{ ss.speak(u); }catch(e){ fb(); } };
+    clearTimeout(sayT); clearTimeout(sayD);
+    if(delay>0) sayD=setTimeout(go, delay*1000); else go();
     return true;
   }catch(e){ fallback && fallback(); return false; }
 }
-function hush(){ clearTimeout(sayT); try{ const ss=window.speechSynthesis; if(ss && (ss.speaking||ss.pending)) ss.cancel(); }catch(e){} }
+function hush(){ clearTimeout(sayT); clearTimeout(sayD); try{ const ss=window.speechSynthesis; if(ss && (ss.speaking||ss.pending)) ss.cancel(); }catch(e){} }
 const taunt = nom => pick(SET.taunts, DEF_TAUNTS, nom);
 const praise = nom => pick(SET.cheers, DEF_CHEERS, nom);
 /* Vannes propres à chaque mode de jeu ; {cible} devient le numéro visé ce tour. */
 const MODE_LINES = {
   shanghai:{ taunt:["Raté ! Le {cible}, il était juste là, {nom}...","{nom}, le {cible} t'a fait quoi pour que tu l'évites comme ça ?","Ça descend, {nom}... comme l'ascenseur.","Shanghaï ? Non. Shang-raté.","{nom}, on vise le {cible}, pas le mur.","La Chine c'est loin, {nom}... mais le {cible}, franchement, non."],
              cheer:["Dans le {cible}, {nom} !","{nom} grimpe comme un chamois !","Plus que quelques cases, {nom}, ça sent la fin !","Ça sent le Shanghaï, ça...","{nom} connaît le chemin du {cible} !","Encore un effort et c'est le Shanghaï, {nom} !"] },
-  killer:{ taunt:["{nom}, même pas un double... les autres respirent.","Tueur ? Plutôt chatouilleur, {nom}.","{nom}, avec un pistolet à eau tu ferais plus de dégâts.","Le tueur le plus gentil du monde : {nom}.","{nom}, t'as oublié les balles dans le pistolet ?"],
-           cheer:["{nom} sort le couteau !","Ça saigne, {nom} ne fait pas de quartier !","Appelez la police, {nom} fait un carnage !","Attention, {nom} est en chasse !","Planquez-vous, {nom} vise juste !"] },
-  cricket:{ taunt:["{nom}, au cricket on ferme les numéros, pas les yeux.","Rien de fermé, {nom}... à part ton score."],
-            cheer:["{nom} ferme tout, c'est un videur !","Propre, {nom}, ça ferme sec !"] },
+  killer:{ taunt:["{nom}, même pas un double... les autres respirent.","{nom}, tu fais peur à personne, là.","Le seul danger avec {nom}, c'est pour le mur.","Tueur ? Plutôt chatouilleur, {nom}.","{nom}, avec un pistolet à eau tu ferais plus de dégâts.","Le tueur le plus gentil du monde : {nom}.","{nom}, t'as oublié les balles dans le pistolet ?"],
+           cheer:["{nom} sort le couteau !","Les cœurs tombent, {nom} est sans pitié !","Ça saigne, {nom} ne fait pas de quartier !","Appelez la police, {nom} fait un carnage !","Attention, {nom} est en chasse !","Planquez-vous, {nom} vise juste !"] },
+  cricket:{ taunt:["{nom}, au cricket on ferme les numéros, pas les yeux.","{nom}, le seul truc que t'as fermé, c'est ton cœur à la victoire.","Rien de fermé, {nom}... à part ton score."],
+            cheer:["{nom} ferme tout, c'est un videur !","{nom} verrouille la cible comme un coffre-fort !","Propre, {nom}, ça ferme sec !"] },
   atc:{ taunt:["{nom}, l'horloge tourne... et toi tu bouges pas.","Tic-tac, {nom}. Toujours au même numéro."],
         cheer:["{nom} avance comme une fusée !","Ça défile, {nom} !"] },
   bobs:{ taunt:["Les doubles, {nom}, c'est pas ton truc, hein ?","{nom}, Bob serait déçu."],
          cheer:["{nom}, le roi des doubles !","Bob serait fier de toi, {nom} !"] }
 };
+/* Humour noir : macabre, mais toujours sur le score, jamais sur la personne. */
+const DARK_TAUNTS = ["{nom}, ton tour était tellement mort qu'on a appelé les pompes funèbres.","Une minute de silence pour le score de {nom}.","Ci-gît le tour de {nom}. Personne ne le regrettera.","{nom}, même un squelette aurait mieux visé. Et lui, il a une excuse.","{nom}, pense à léguer tes fléchettes à quelqu'un qui sait s'en servir.","Le médecin légiste a examiné ton tour, {nom} : mort sur le coup.","À ce rythme, {nom}, on gravera ton score sur ta tombe. Ça prendra pas de place.","Le corbillard est garé devant, {nom}. Il vient chercher ton score.","Ton tour, {nom}, c'est comme un enterrement : tout le monde est triste et personne veut en parler.","Même la Faucheuse a détourné le regard, {nom}.","Bonne nouvelle, {nom} : ton tour est déjà six pieds sous terre.","{nom}, tes fléchettes sont parties rejoindre la lumière. Loin, très loin de la cible.","On a retrouvé le score de {nom}. Il n'a pas survécu.","{nom}, si l'espoir était un patient, il serait débranché, là."];
+const DARK_CHEERS = ["{nom} vient d'achever la partie. Paix à son âme.","Quel massacre, {nom}. Les autres peuvent préparer leur éloge funèbre.","{nom} creuse la tombe des autres joueurs. À la petite cuillère.","La Faucheuse prend des notes en regardant {nom}.","{nom}, t'es pas un joueur, t'es une scène de crime.","Prévenez les familles : {nom} est chaud."];
+const DARK_KILL = ["Heure du décès de {v} : maintenant. Cause : {a}.","{a} vient d'envoyer {v} au cimetière. Ni fleurs ni couronnes.","{v} nous a quittés. {a} ne viendra pas à l'enterrement.","On creuse un trou pour {v}. C'est {a} qui tient la pelle."];
+/* Mode sans pitié : plus méchant, plus souvent. Ça tape sur le jeu, pas sur qui on est. */
+const HARSH_TAUNTS = ["{nom}, si la nullité tuait, on serait déjà à ton enterrement.","Même un mort lancerait mieux, {nom}. Et lui, au moins, il tremblerait pas.","{nom}, ton tour est une insulte à tous ceux qui ont déjà tenu une fléchette.","{nom}, t'es nul à chier. Et encore, je suis gentil avec les toilettes.","On devrait te retirer tes fléchettes pour usage dangereux, {nom}.","{nom}, même la Faucheuse refuse de t'emmener : elle a honte d'être vue avec toi.","Ton score, {nom}, il est tellement bas qu'il creuse sa propre tombe.","{nom}, à ton enterrement, personne voudra récupérer tes fléchettes.","Si ton tour était un chien, {nom}, on l'aurait fait piquer.","{nom}, t'as la précision d'un ivrogne en pleine tempête.","Bravo {nom}, t'as réussi à décevoir même ceux qui n'attendaient rien de toi.","{nom}, on t'aurait bien encouragé, mais même l'espoir a démissionné.","À ton enterrement, {nom}, on lancera des fléchettes sur ton cercueil. Et on le ratera, pour te rendre hommage.","{nom}, t'as deux mains et aucune des deux ne sert à rien.","Le jour où tu feras un bon tour, {nom}, on organisera une messe.","{nom}, même ton ombre a honte de te suivre.","C'est pas un tour, {nom}, c'est un avis de décès pour ta dignité.","{nom}, t'es la preuve vivante que l'évolution peut revenir en arrière.","Même ta mère a arrêté de regarder, {nom}.","{nom}, si t'étais un cheval, on t'aurait déjà abattu."];
+const HARSH_CHEERS = ["{nom}, ce tour est tellement violent que les autres devraient porter plainte.","Les autres, rédigez vos testaments : {nom} est en mode boucher.","{nom} massacre la cible comme si elle lui devait de l'argent.","Enfin un bon tour, {nom}. On commençait à te commander un cercueil.","{nom} vient de commettre un meurtre. La victime : votre fierté à tous.","Appelez la morgue, {nom} vient de défoncer tout le monde."];
+const HARSH_KILL = ["{a} a achevé {v} comme un vieux cheval. Personne n'a pleuré.","{v} est mort. Ses dernières paroles : je vais me refaire au prochain tour.","{a} vient de buter {v}. La police a classé l'affaire : c'était mérité.","{v} rejoint le cimetière des nuls. {a} a même pas eu besoin de viser.","Pas de minute de silence pour {v}. {a} a déjà oublié son nom."];
 function joke(mood, nom){
+  if(SET.dark && Math.random()<(SET.brutal?.5:.3)){
+    const pool = mood==='cheer' ? [...DARK_CHEERS, ...(SET.brutal?HARSH_CHEERS:[])] : [...DARK_TAUNTS, ...(SET.brutal?HARSH_TAUNTS:[])];
+    return rnd(pool).replace(/\{nom\}/g, nom);
+  }
   const L = G && MODE_LINES[G.mode] && MODE_LINES[G.mode][mood];
   if(L && Math.random()<.5){
     const cible = G.mode==='shanghai' ? MODES.shanghai.tg(G, G.players[G.cur]) : G.mode==='bobs' ? (G.round<=20?'D'+G.round:'centre') : '';
@@ -909,7 +1001,10 @@ function react(kind, nom){
   const mood = ({great:'cheer', good:'cheer', bad:'taunt', zero:'taunt', bust:'taunt'})[kind];
   // La phrase affichée sous l'animation est la même que celle dite par la voix.
   // Parfois, sur un mauvais tour : un pet à la place de la voix.
-  const farting = SET.on && SET.fart && (kind==='bad'||kind==='zero') && Math.random()<.3;
+  const funny = SET.on && SET.fart, rr=Math.random(), badTurn = kind==='bad'||kind==='zero'||kind==='bust', isBig=['max','win','shanghai','leg','end'].includes(kind);
+  const farting = funny && (kind==='bad'||kind==='zero') && rr<.25;
+  // Parfois, un bruit rigolo juste avant la vanne (pet, canard, chien, loup…).
+  const intro = !farting && funny && !isBig && mood ? (badTurn ? (rr<.6 ? rnd(FX_TAUNT) : null) : (rr<.35 ? rnd(FX_CHEER) : null)) : null;
   const line = farting ? fartLine(nom) : mood ? accentize(joke(mood, nom), nom, mood) : '';
   const spoken = {
     max:'Cent quatre-vingts !', great:line, good:line, bad:line, zero:line, bust:'Bust ! '+line,
@@ -922,7 +1017,8 @@ function react(kind, nom){
   // Soit la voix, soit le bruit : jamais les deux en même temps.
   const big = ['max','win','shanghai','leg','end'].includes(kind);
   if(farting){ fart(); return; }
-  if(!big && SET.voice && spoken) say(spoken, kind==='max'?.85:0, 0, snd, accOf(nom));
+  if(!big && SET.voice && spoken){ const d = intro ? intro() : 0; say(spoken, kind==='max'?.85:0, 0, intro ? null : snd, accOf(nom), d ? d+.1 : 0); }
+  else if(intro) intro();
   else snd && snd();
 }
 
@@ -992,8 +1088,9 @@ function throwDart(d){
   if(r.bust){ G.bust=true; G.turnDone=true; }
   else if(r.endTurn || G.darts.length>=3) G.turnDone=true;
   save(); render();
-  if(r.kill) react('kill', r.kill);
-  else if(G.turnDone) react(rateTurn(), p.name);
+  if(r.kill){ if(SET.fx===undefined || !SET.fx) reactRival(p.name, r.kill, true); else { react('kill', r.kill); reactRival(p.name, r.kill, true); } }
+  else if(r.victim) reactRival(p.name, r.victim, false);
+  else if(G.turnDone && !G.rivalSaid) react(rateTurn(), p.name);
 }
 function winLeg(p, shanghai){
   if(G.mode==='x01'){
@@ -1044,7 +1141,7 @@ function nextTurn(){
   if(ni===-1){ endGame(null); if(note) toast(note); return; }
   const n=G.players.length, pos=i=>(i-G.starter+n)%n;
   if(pos(ni)<=pos(G.cur)) G.round++;
-  G.cur=ni; G.darts=[]; G.turnDone=false; G.bust=false; G.turnHits=0;
+  G.cur=ni; G.darts=[]; G.turnDone=false; G.bust=false; G.turnHits=0; G.rivalSaid=false;
   const mr = M().maxRounds ? M().maxRounds(G) : 0;
   if(mr && G.round>mr){ G.round=mr; endGame(null); if(note) toast(note); return; }
   save(); render(); if(note) toast(note);
@@ -1080,7 +1177,9 @@ function homeHTML(){
     <section class="group"><h2>Animations, sons et voix</h2><div class="card">
       <div class="srow"><span><b>Animations</b><small>Une scène plein écran après chaque gros tour ou gros raté</small></span><button class="sw" role="switch" aria-checked="${SET.fx}" aria-label="Animations" data-a="tog" data-k="fx"></button></div>
       <div class="srow"><span><b>Sons</b><small>Klaxon, huées et trombone triste</small></span><button class="sw" role="switch" aria-checked="${SET.on}" aria-label="Sons" data-a="tog" data-k="on"></button></div>
-      <div class="srow"><span><b>Bruits de pet</b><small>De temps en temps, sur un mauvais tour</small></span><button class="sw" role="switch" aria-checked="${SET.fart}" aria-label="Bruits de pet" data-a="tog" data-k="fart" ${SET.on?'':'disabled'}></button></div>
+      <div class="srow"><span><b>Bruits rigolos</b><small>Pets, canard, chien, loup… de temps en temps avant une vanne</small></span><button class="sw" role="switch" aria-checked="${SET.fart}" aria-label="Bruits de pet" data-a="tog" data-k="fart" ${SET.on?'':'disabled'}></button></div>
+      <div class="srow"><span><b>Humour noir</b><small>Des vannes macabres de temps en temps (enterrements, Faucheuse…)</small></span><button class="sw" role="switch" aria-checked="${SET.dark}" aria-label="Humour noir" data-a="tog" data-k="dark"></button></div>
+      <div class="srow"><span><b>Mode sans pitié</b><small>Humour noir plus méchant et plus fréquent. Entre potes uniquement.</small></span><button class="sw" role="switch" aria-checked="${SET.brutal}" aria-label="Mode sans pitié" data-a="tog" data-k="brutal" ${SET.dark?'':'disabled'}></button></div>
       <div class="srow"><span><b>Voix du commentateur</b><small>Une fois sur deux, la vanne est dite à voix haute à la place du bruit</small></span><button class="sw" role="switch" aria-checked="${SET.voice}" aria-label="Voix" data-a="tog" data-k="voice" ${SET.on?'':'disabled'}></button></div>
       <div class="tarea"><label for="ta-t">Phrases pour chambrer</label><textarea id="ta-t" data-k="taunts" rows="5">${esc(SET.taunts)}</textarea>
         <label for="ta-c">Phrases de félicitations</label><textarea id="ta-c" data-k="cheers" rows="4">${esc(SET.cheers)}</textarea>
@@ -1089,7 +1188,7 @@ function homeHTML(){
         <label for="ta-gm">Mes GIF quand ça rate</label><textarea id="ta-gm" data-k="gifBad" rows="2" placeholder="https://…gif">${esc(SET.gifBad)}</textarea>
         <small>Facultatif. Collez un lien direct vers un GIF par ligne. Ils remplacent parfois les animations intégrées.</small></div>
       <div class="pactions"><button data-a="test" data-k="great">Gros tour</button><button data-a="test" data-k="zero">Triple zéro</button><button data-a="test" data-k="win">Victoire</button><button data-a="testv">Voix</button></div>
-      <div class="pactions"><button data-a="testf">Tester le prout</button></div>
+      <div class="pactions"><button data-a="testf">Prout</button><button data-a="testx" data-k="0">Chien</button><button data-a="testx" data-k="1">Loup</button><button data-a="testx" data-k="2">Canard</button></div>
       ${Object.keys(PHOTOS).length?'<div class="pactions"><button data-a="clrph">Retirer les photos</button></div>':''}
     </div></section>
     <p class="foot">Les parties sont enregistrées sur cet appareil.<br><button data-a="theme">Thème : ${({auto:'automatique',light:'clair',dark:'sombre'})[store.get('ocheg.theme','auto')]}</button></p>
@@ -1250,6 +1349,7 @@ document.addEventListener('click', e=>{
     case 'hideres': resultsHidden=true; render(); break;
     case 'replay': { const names=G.players.map(p=>p.name); names.push(names.shift()); newGame(G.mode,{...G.opts},names); break; }
     case 'testf': if(!SET.on){ toast('Activez les sons pour tester'); break; } hush(); fart(); toast('💨 '+fartLine(players[0]||'Joueur 1'), 3000); break;
+    case 'testx': if(!SET.on){ toast('Activez les sons pour tester'); break; } hush(); [bark,howl,quack][+b.dataset.k](); break;
     case 'snd': SET.on=!SET.on; saveSet(); if(!SET.on) hush(); else tock(false); render(); break;
     case 'tog': SET[b.dataset.k]=!SET[b.dataset.k]; saveSet(); if(!SET.on||!SET.voice) hush(); render(); break;
     case 'test': { const nom=players[0]||'Joueur 1'; react(b.dataset.k, nom); if(!SET.fx) toast('Activez les animations pour les voir'); break; }
