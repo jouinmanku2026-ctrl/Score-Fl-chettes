@@ -526,66 +526,64 @@ const MODES = {
       return [...g.players].sort((a,b)=> t==='noscore' ? mk(b)-mk(a) : t==='cut' ? (a.score-b.score||mk(b)-mk(a)) : (b.score-a.score||mk(b)-mk(a))); }
   },
 
-  atc:{ name:'Tour de l’horloge', badge:'1→20', desc:'Toucher chaque numéro dans l’ordre.', title:()=>'Tour de l’horloge',
-    rules:"Touchez le 1, puis le 2, et ainsi de suite jusqu'au 20, puis la bulle si l'option est active. Avec l'option « font avancer », un double fait sauter deux numéros et un triple trois. Le premier arrivé au bout gagne.",
-    opts:[{k:'multi',l:'Doubles et triples',c:[[0,'Comptent 1'],[1,'Font avancer']],d:0},
-          {k:'bull',l:'Finir sur la bulle',c:[[1,'Oui'],[0,'Non']],d:1}],
-    init(g){ g.players.forEach(p=>{ p.t=1; }); },
-    tn:p=>p.t>20?25:p.t,
+  atc:{ name:'Tour du monde', badge:'1→50', desc:'Toucher chaque numéro dans l’ordre, finir au 25 et au 50.', title:()=>'Tour du monde',
+    rules:"Touchez le 1, puis le 2, et ainsi de suite jusqu'au 20. Ensuite il faut toucher le 25, puis le 50, pour finir. Chaque touche fait avancer d'une case, et un triple fait sauter deux cases de plus : un triple 19 envoie donc directement au 50, et un triple 20 fait finir tout de suite. Trois fléchettes ratées dans un tour : on recule d'une case. Trois touches dans un tour : on rejoue tout de suite. Le premier arrivé au bout gagne.",
+    opts:[{k:'fin',l:'Fin du parcours',c:[['bull2','25 puis 50'],['bull','La bulle'],['none','Au 20']],d:'bull2'},
+          {k:'adv',l:'Doubles et triples',c:[['t3','Triple saute 2 cases'],['all','Double +2, triple +3'],['one','Comptent 1']],d:'t3'}],
+    cfg(g){ const o=g.opts; return { fin: o.fin || (o.bull===0 ? 'none' : 'bull'), adv: o.adv || (o.multi ? 'all' : 'one') }; },
+    end(g){ const f=this.cfg(g).fin; return f==='bull2' ? 23 : f==='bull' ? 22 : 21; },
+    init(g){ g.players.forEach(p=>{ p.t=1; p.hits=0; }); },
+    tn(g,p){ return p.t<=20 ? p.t : (this.cfg(g).fin==='bull2' && p.t===22) ? 50 : 25; },
+    lab(g,p){ if(p.t>=this.end(g)) return '✓'; const t=this.tn(g,p); return t===25 ? (this.cfg(g).fin==='bull2'?'25':'Bull') : t; },
     dart(g,p,d){
       p.thrown++;
-      const tn=this.tn(p); if(d.n!==tn) return {};
-      if(tn===25) return {win:true};
-      p.t += g.opts.multi ? d.m : 1;
-      if(p.t>20){ if(!g.opts.bull) return {win:true}; p.t=21; }
-      return {hit:1};
-    },
-    hero(g,p){ return { big:this.tn(p)===25?'Bull':p.t, cap:'Cible', sub:`${p.thrown} fléchettes` }; },
-    row(g,p){ return { val:this.tn(p)===25?'Bull':p.t, sub:`${p.thrown} fléchettes` }; },
-    hint(){ return ''; },
-    rel(g,p){ return [this.tn(p)]; },
-    rank(g){ return [...g.players].sort((a,b)=>b.t-a.t||a.thrown-b.thrown); }
-  },
-
-  shanghai:{ name:'Shanghai', badge:'S', desc:'Un numéro à la fois, le Shanghai gagne.', title:g=>g.opts.rules==='classic'?'Shanghai':'Shanghai maison',
-    rules:"Règles maison : chacun avance à son rythme en partant du 1. Au moins une touche sur son numéro : on passe au suivant. Un triple fait sauter deux cases de plus (triple 5 : on passe au 8). Trois fléchettes ratées : on redescend d'un numéro. Trois touches de suite : on avance et on rejoue tout de suite. Après le dernier numéro, il faut encore toucher le 25 puis le 50 pour finir : un triple 19 envoie donc directement au 50, et un triple 20 fait finir tout de suite. Le premier qui finit gagne. Règles classiques : tout le monde vise le 1 au tour 1, le 2 au tour 2, etc. ; le meilleur score à la fin gagne. Dans les deux cas, toucher le simple, le double et le triple du même numéro dans un tour (un Shanghai) fait gagner immédiatement.",
-    opts:[{k:'rules',l:'Règles',c:[['maison','Maison'],['classic','Classiques']],d:'maison'},
-          {k:'rounds',l:'Dernier numéro',c:[[7,'7'],[10,'10'],[20,'20']],d:20}],
-    // Maison : cases 1 … dernier numéro, puis 25, puis 50, puis fini.
-    tg(g,p){ if(g.opts.rules==='classic') return g.round; const L=g.opts.rounds; return p.t<=L ? p.t : p.t===L+1 ? 25 : 50; },
-    lab(g,p){ const L=g.opts.rounds; return p.t>L+2 ? '✓' : p.t===L+1 ? '25' : p.t===L+2 ? '50' : p.t; },
-    init(g){ g.players.forEach(p=>{ p.score=0; p.hm=[]; p.t=1; p.hits=0; }); },
-    dart(g,p,d){
-      p.thrown++;
-      const t=this.tg(g,p);
-      if(g.opts.rules!=='classic' && t===50 ? !(d.n===25 && d.m===2) : d.n!==t) return {};
-      p.score+=val(d); p.hits=(p.hits||0)+1; if(d.m===3) p.tripled=true; if(!p.hm.includes(d.m)) p.hm.push(d.m);
-      if(p.hm.length===3) return {win:true, note:'Shanghai !', shanghai:true};
+      const tn=this.tn(g,p), c=this.cfg(g);
+      const ok = tn===50 ? (d.n===25 && d.m===2) : d.n===tn;
+      if(!ok) return {};
+      const adv = c.adv==='all' ? d.m : c.adv==='t3' ? (d.m===3 ? 3 : 1) : 1;
+      const before=this.lab(g,p);
+      p.t=Math.min(p.t+adv, this.end(g));
+      p.hits=(p.hits||0)+1;
+      if(p.t>=this.end(g)) return {win:true};
+      if(adv>=3) toast(`Triple ! ${p.name} saute du ${before} au ${this.lab(g,p)}`);
       return {hit:1};
     },
     turnEnd(g,p){
-      if(g.opts.rules!=='classic'){
-        const h=p.hits||0;
-        if(h===0){ if(p.t>1){ p.t--; g.note=`${p.name} redescend au ${p.t}`; } else g.note=`${p.name} reste au 1`; }
-        else {
-          const before=this.lab(g,p);
-          p.t=Math.min(p.t+1+(p.tripled?2:0), g.opts.rounds+3);
-          if(p.tripled) g.note=`Triple ! ${p.name} saute du ${before} au ${this.lab(g,p)}`;
-          if(h>=3 && !this.finished(g,p)){ g.again=true; g.note=(p.tripled?g.note+'. ':'')+`${p.name} enchaîne trois touches et rejoue !`; }
-        }
-      }
-      p.hm=[]; p.hits=0; p.tripled=false;
+      const h=p.hits||0;
+      if(h===0 && g.darts.length>=3){ if(p.t>1){ p.t--; g.note=`${p.name} recule au ${this.lab(g,p)}`; } }
+      else if(h>=3){ g.again=true; g.note=`${p.name} enchaîne trois touches et rejoue !`; }
+      p.hits=0;
     },
-    finished(g,p){ return g.opts.rules!=='classic' && p.t>g.opts.rounds+2; },
-    hero(g,p){ return g.opts.rules==='classic'
-      ? { big:p.score, cap:`Cible : ${g.round}`, sub:'' }
-      : { big:this.lab(g,p), cap: p.t>g.opts.rounds ? (p.t===g.opts.rounds+1 ? 'Cible : la bulle 25, puis le 50 pour finir' : 'Cible : le 50 pour finir !') : `Cible, puis ${g.opts.rounds>p.t?'… '+g.opts.rounds+', ':''}25 et 50`, sub:`${p.score} pts` }; },
-    row(g,p){ return g.opts.rules==='classic' ? { val:p.score, sub:'' } : { val:this.lab(g,p), sub:`${p.score} pts` }; },
-    hint(g,p){ const t=this.tg(g,p); return `<span>Vise</span><span class="chip">${t===25?'Bull 25':t===50?'Bull 50':t}</span>`; },
-    rel(g,p){ const t=this.tg(g,p); return [t===50?25:t]; },
-    maxRounds:g=>g.opts.rules==='classic' ? g.opts.rounds : 0,
-    rank(g){ return g.opts.rules==='classic' ? [...g.players].sort((a,b)=>b.score-a.score) : [...g.players].sort((a,b)=>b.t-a.t||b.score-a.score); }
+    hero(g,p){ return { big:this.lab(g,p), cap: p.t>20 ? (this.tn(g,p)===50 ? 'Cible : le 50 pour finir !' : 'Cible : la bulle') : 'Cible', sub:`${p.thrown} fléchettes` }; },
+    row(g,p){ return { val:this.lab(g,p), sub:`${p.thrown} fléchettes` }; },
+    hint(g,p){ const t=this.tn(g,p); return `<span>Vise</span><span class="chip">${t===50?'Bull 50':t===25?'Bull 25':t}</span>`; },
+    rel(g,p){ const t=this.tn(g,p); return [t===50?25:t]; },
+    rank(g){ return [...g.players].sort((a,b)=>b.t-a.t||a.thrown-b.thrown); }
   },
+
+
+  shanghai:{ name:'Shanghai', badge:'S', desc:'Un numéro par tour, puis la bulle. Le Shanghai gagne.', title:()=>'Shanghai',
+    rules:"Au tour 1 tout le monde vise le 1, au tour 2 le 2, et ainsi de suite jusqu'au dernier numéro. Un dernier tour s'ajoute ensuite sur la bulle : le 25 et le 50 comptent tous les deux. Seules les fléchettes sur la cible du tour marquent leur valeur. Toucher le simple, le double et le triple du même numéro dans un tour (un Shanghai) fait gagner immédiatement. Sinon, le meilleur score à la fin gagne.",
+    opts:[{k:'rounds',l:'Dernier numéro',c:[[7,'7'],[10,'10'],[20,'20']],d:20}],
+    tg(g){ return g.round<=g.opts.rounds ? g.round : 25; },
+    init(g){ g.players.forEach(p=>{ p.score=0; p.hm=[]; }); },
+    dart(g,p,d){
+      p.thrown++;
+      if(d.n!==this.tg(g)) return {};
+      p.score+=val(d); if(!p.hm.includes(d.m)) p.hm.push(d.m);
+      if(p.hm.length===3) return {win:true, note:'Shanghai !', shanghai:true};
+      return {hit:1};
+    },
+    turnEnd(g,p){ p.hm=[]; },
+    hero(g,p){ const t=this.tg(g); return { big:p.score, cap: t===25 ? 'Dernier tour : la bulle, 25 ou 50' : `Cible : ${t}`, sub:'' }; },
+    row(g,p){ return { val:p.score, sub:'' }; },
+    hint(g){ const t=this.tg(g); return `<span>Vise</span><span class="chip">${t===25?'Bull':t}</span>`; },
+    rel(g){ return [this.tg(g)]; },
+    maxRounds:g=>g.opts.rounds+1,
+    rank(g){ return [...g.players].sort((a,b)=>b.score-a.score); }
+  },
+
+
 
 
   killer:{ name:'Killer', badge:'K', desc:'Devenir tueur, puis éliminer les autres.', title:()=>'Killer', min:3,
@@ -798,6 +796,8 @@ const JOB2_CHEERS = [
  "{nom}, ça, c'est du livrable !",
  "{nom}, ce tour mérite une place dans le book de l'agence.",
  "Zéro retour client, {nom}. Historique."];
+const MORE3_TAUNTS = ["{nom}, t'as bu combien de bières, là ?","{nom}, même ton GPS se recalculerait après ce tour.","{nom}, ton tour est en promo : moins cent pour cent.","{nom}, réseau faible : ta fléchette s'est déconnectée.","{nom}, t'as mis le mode avion sur tes fléchettes ?","{nom}, on a vu des chats bourrés viser mieux.","{nom}, ce tour part direct dans les vidéos gag.","{nom}, lancer de fléchettes ou lancer de cailloux, faut choisir.","{nom}, t'as lancé avec les yeux fermés ou c'est ton style ?","{nom}, même le videur aurait refusé de laisser entrer ce tour.","{nom}, ce tour, c'est comme un plat réchauffé : personne en voulait.","{nom}, même ton horoscope avait prévu ce désastre."];
+const MORE3_CHEERS = ["{nom}, tournée générale offerte par toi pour fêter ça !","{nom}, mets ça sur LinkedIn.","{nom}, encore un comme ça et on t'appelle Phil Taylor.","{nom}, c'est le meilleur tour depuis l'invention de la bière.","{nom}, la cible t'envoie une demande d'ami.","{nom}, celui-là, on l'encadre et on l'accroche au bar."];
 const PERSO_TAUNTS = [
  "Charles: Charles, même le général de Gaulle visait mieux.",
  "Charles: Charles le Chauve... de points.",
@@ -820,7 +820,7 @@ const PERSO_CHEERS = [
  "Grégoire: Saint Grégoire, priez pour nous, il est en feu !",
  "Simon: Jacques a dit : applaudissez Simon !",
  "Simon: Simon, le patron !"];
-let SET = Object.assign({jv:4, brutal:true, dark:true, fart:true, jv:2, on:true, voice:true, fx:true, gifGood:'', gifBad:'', taunts:[...JOB_TAUNTS,...JOB2_TAUNTS,...DEF_TAUNTS,...MORE_TAUNTS_PRE,...MORE2_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...JOB_CHEERS,...JOB2_CHEERS,...DEF_CHEERS,...MORE_CHEERS_PRE,...MORE2_CHEERS,...PERSO_CHEERS].join('\n'), v:3}, store.get('ocheg.sound',{}));
+let SET = Object.assign({jv:5, spicy:true, brutal:true, dark:true, fart:true, jv:2, on:true, voice:true, fx:true, gifGood:'', gifBad:'', taunts:[...MORE3_TAUNTS,...JOB_TAUNTS,...JOB2_TAUNTS,...DEF_TAUNTS,...MORE_TAUNTS_PRE,...MORE2_TAUNTS,...PERSO_TAUNTS].join('\n'), cheers:[...MORE3_CHEERS,...JOB_CHEERS,...JOB2_CHEERS,...DEF_CHEERS,...MORE_CHEERS_PRE,...MORE2_CHEERS,...PERSO_CHEERS].join('\n'), v:3}, store.get('ocheg.sound',{}));
 const MORE_TAUNTS = MORE_TAUNTS_PRE;
 const MORE_CHEERS = MORE_CHEERS_PRE;
 const FART_LINES = ["Oups... c'est {nom} ou c'est son tour qui sent ?","Ce tour méritait bien un petit bruit, {nom}.","Même ton derrière est déçu, {nom}.","{nom}, ça sent pas bon... et je parle pas que du score.","Pardon. C'était un commentaire sur le tour de {nom}."];
@@ -830,17 +830,22 @@ if(!SET.jv){
   if(SET.fart===undefined) SET.fart=true;
   store.set('ocheg.sound', SET);
 }
+if(SET.spicy===undefined) SET.spicy=true;
+if((SET.jv||0)>=4 && SET.jv<5){
+  const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
+  SET.taunts=add(SET.taunts,MORE3_TAUNTS); SET.cheers=add(SET.cheers,MORE3_CHEERS); SET.jv=5; store.set('ocheg.sound', SET);
+}
 if((SET.jv||0)>=3 && SET.jv<4){
   const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
-  SET.taunts=add(SET.taunts,JOB2_TAUNTS); SET.cheers=add(SET.cheers,JOB2_CHEERS); SET.jv=4; store.set('ocheg.sound', SET);
+  SET.taunts=add(SET.taunts,JOB2_TAUNTS); SET.cheers=add(SET.cheers,JOB2_CHEERS); SET.taunts=add(SET.taunts,MORE3_TAUNTS); SET.cheers=add(SET.cheers,MORE3_CHEERS); SET.jv=5; store.set('ocheg.sound', SET);
 }
 if((SET.jv||0)>=2 && SET.jv<3){
   const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
-  SET.taunts=add(add(SET.taunts,JOB_TAUNTS),JOB2_TAUNTS); SET.cheers=add(add(SET.cheers,JOB_CHEERS),JOB2_CHEERS); SET.jv=4; store.set('ocheg.sound', SET);
+  SET.taunts=add(add(SET.taunts,JOB_TAUNTS),JOB2_TAUNTS); SET.cheers=add(add(SET.cheers,JOB_CHEERS),JOB2_CHEERS); SET.taunts=add(SET.taunts,MORE3_TAUNTS); SET.cheers=add(SET.cheers,MORE3_CHEERS); SET.jv=5; store.set('ocheg.sound', SET);
 }
 if((SET.jv||0)<2){
   const add=(txt,lines)=>{ const have=String(txt||'').split('\n'); return [...have.filter(Boolean), ...lines.filter(l=>!have.includes(l))].join('\n'); };
-  SET.taunts=add(add(add(SET.taunts,MORE2_TAUNTS),JOB_TAUNTS),JOB2_TAUNTS); SET.cheers=add(add(add(SET.cheers,MORE2_CHEERS),JOB_CHEERS),JOB2_CHEERS); SET.jv=4; store.set('ocheg.sound', SET);
+  SET.taunts=add(add(add(SET.taunts,MORE2_TAUNTS),JOB_TAUNTS),JOB2_TAUNTS); SET.cheers=add(add(add(SET.cheers,MORE2_CHEERS),JOB_CHEERS),JOB2_CHEERS); SET.taunts=add(SET.taunts,MORE3_TAUNTS); SET.cheers=add(SET.cheers,MORE3_CHEERS); SET.jv=5; store.set('ocheg.sound', SET);
 }
 if(SET.brutal===undefined){ SET.brutal=true; SET.dark=true; store.set('ocheg.sound', SET); }
 if(SET.v===2){
@@ -1154,38 +1159,58 @@ const taunt = nom => pick(SET.taunts, DEF_TAUNTS, nom);
 const praise = nom => pick(SET.cheers, DEF_CHEERS, nom);
 /* Vannes propres à chaque mode de jeu ; {cible} devient le numéro visé ce tour. */
 const MODE_LINES = {
-  shanghai:{ taunt:["Raté ! Le {cible}, il était juste là, {nom}...","{nom}, le {cible} t'a fait quoi pour que tu l'évites comme ça ?","Ça descend, {nom}... comme l'ascenseur.","Shanghaï ? Non. Shang-raté.","{nom}, on vise le {cible}, pas le mur.","La Chine c'est loin, {nom}... mais le {cible}, franchement, non."],
-             cheer:["Dans le {cible}, {nom} !","{nom} grimpe comme un chamois !","Plus que quelques cases, {nom}, ça sent la fin !","Ça sent le Shanghaï, ça...","{nom} connaît le chemin du {cible} !","Encore un effort et c'est le Shanghaï, {nom} !"] },
+  shanghai:{ taunt:["Raté ! Le {cible}, il était juste là, {nom}...","{nom}, le {cible} t'a fait quoi pour que tu l'évites comme ça ?","Shanghaï ? Non. Shang-raté.","{nom}, on vise le {cible}, pas le mur.","La Chine c'est loin, {nom}... mais le {cible}, franchement, non."],
+             cheer:["Dans le {cible}, {nom} !","Ça sent le Shanghaï, ça...","{nom} connaît le chemin du {cible} !","Encore un effort et c'est le Shanghaï, {nom} !"] },
   killer:{ taunt:["{nom}, même pas un double... les autres respirent.","{nom}, tu fais peur à personne, là.","Le seul danger avec {nom}, c'est pour le mur.","Tueur ? Plutôt chatouilleur, {nom}.","{nom}, avec un pistolet à eau tu ferais plus de dégâts.","Le tueur le plus gentil du monde : {nom}.","{nom}, t'as oublié les balles dans le pistolet ?"],
            cheer:["{nom} sort le couteau !","Les cœurs tombent, {nom} est sans pitié !","Ça saigne, {nom} ne fait pas de quartier !","Appelez la police, {nom} fait un carnage !","Attention, {nom} est en chasse !","Planquez-vous, {nom} vise juste !"] },
   cricket:{ taunt:["{nom}, au cricket on ferme les numéros, pas les yeux.","{nom}, le seul truc que t'as fermé, c'est ton cœur à la victoire.","Rien de fermé, {nom}... à part ton score."],
             cheer:["{nom} ferme tout, c'est un videur !","{nom} verrouille la cible comme un coffre-fort !","Propre, {nom}, ça ferme sec !"] },
-  atc:{ taunt:["{nom}, l'horloge tourne... et toi tu bouges pas.","Tic-tac, {nom}. Toujours au même numéro."],
-        cheer:["{nom} avance comme une fusée !","Ça défile, {nom} !"] },
+  atc:{ taunt:["{nom}, à ce rythme, ton tour du monde, il va durer plus de quatre-vingts jours.","{nom}, t'as perdu ton passeport ? Tu bouges plus.","{nom} recule d'une case... retour à l'aéroport.","{nom}, même un touriste perdu avance plus vite que toi."],
+        cheer:["{nom} avance comme une fusée !","Ça défile, {nom} ! Prochaine escale !","{nom} fait le tour du monde en classe affaires !"] },
   bobs:{ taunt:["Les doubles, {nom}, c'est pas ton truc, hein ?","{nom}, Bob serait déçu."],
          cheer:["{nom}, le roi des doubles !","Bob serait fier de toi, {nom} !"] }
 };
 /* Humour noir : macabre, mais toujours sur le score, jamais sur la personne. */
 const DARK_TAUNTS = ["{nom}, ton tour était tellement mort qu'on a appelé les pompes funèbres.","Une minute de silence pour le score de {nom}.","Ci-gît le tour de {nom}. Personne ne le regrettera.","{nom}, même un squelette aurait mieux visé. Et lui, il a une excuse.","{nom}, pense à léguer tes fléchettes à quelqu'un qui sait s'en servir.","Le médecin légiste a examiné ton tour, {nom} : mort sur le coup.","À ce rythme, {nom}, on gravera ton score sur ta tombe. Ça prendra pas de place.","Le corbillard est garé devant, {nom}. Il vient chercher ton score.","Ton tour, {nom}, c'est comme un enterrement : tout le monde est triste et personne veut en parler.","Même la Faucheuse a détourné le regard, {nom}.","Bonne nouvelle, {nom} : ton tour est déjà six pieds sous terre.","{nom}, tes fléchettes sont parties rejoindre la lumière. Loin, très loin de la cible.","On a retrouvé le score de {nom}. Il n'a pas survécu.","{nom}, si l'espoir était un patient, il serait débranché, là."];
 const DARK_CHEERS = ["{nom} vient d'achever la partie. Paix à son âme.","Quel massacre, {nom}. Les autres peuvent préparer leur éloge funèbre.","{nom} creuse la tombe des autres joueurs. À la petite cuillère.","La Faucheuse prend des notes en regardant {nom}.","{nom}, t'es pas un joueur, t'es une scène de crime.","Prévenez les familles : {nom} est chaud."];
-const DARK_KILL = ["Heure du décès de {v} : maintenant. Cause : {a}.","{a} vient d'envoyer {v} au cimetière. Ni fleurs ni couronnes.","{v} nous a quittés. {a} ne viendra pas à l'enterrement.","On creuse un trou pour {v}. C'est {a} qui tient la pelle."];
+DARK_TAUNTS.push("{nom}, ce tour, c'est comme un testament : personne veut le lire jusqu'au bout.","{nom}, même ton assurance obsèques refuse de couvrir ce tour.","{nom}, ton tour a été donné à la science. Ils l'ont refusé.","À ton enterrement, {nom}, on fera une partie en ton honneur. Et on te laissera gagner, pour une fois.","{nom}, même les vers de terre ont boycotté ton tour.","{nom}, le croque-mort t'a laissé sa carte. Au cas où.","{nom}, ton tour sent le sapin. Et pas celui de Noël.");
+DARK_CHEERS.push("{nom} vient de creuser six tombes d'un coup.","Les pompes funèbres remercient {nom} pour le chiffre d'affaires de ce soir.");
+const DARK_KILL = ["{v} vient de passer l'arme à gauche. {a} visait pourtant à droite.","{a} a enterré {v}. Sans cérémonie, sans regrets.","Heure du décès de {v} : maintenant. Cause : {a}.","{a} vient d'envoyer {v} au cimetière. Ni fleurs ni couronnes.","{v} nous a quittés. {a} ne viendra pas à l'enterrement.","On creuse un trou pour {v}. C'est {a} qui tient la pelle."];
 /* Mode sans pitié : plus méchant, plus souvent. Ça tape sur le jeu, pas sur qui on est. */
 const HARSH_TAUNTS = ["{nom}, si la nullité tuait, on serait déjà à ton enterrement.","Même un mort lancerait mieux, {nom}. Et lui, au moins, il tremblerait pas.","{nom}, ton tour est une insulte à tous ceux qui ont déjà tenu une fléchette.","{nom}, t'es nul à chier. Et encore, je suis gentil avec les toilettes.","On devrait te retirer tes fléchettes pour usage dangereux, {nom}.","{nom}, même la Faucheuse refuse de t'emmener : elle a honte d'être vue avec toi.","Ton score, {nom}, il est tellement bas qu'il creuse sa propre tombe.","{nom}, à ton enterrement, personne voudra récupérer tes fléchettes.","Si ton tour était un chien, {nom}, on l'aurait fait piquer.","{nom}, t'as la précision d'un ivrogne en pleine tempête.","Bravo {nom}, t'as réussi à décevoir même ceux qui n'attendaient rien de toi.","{nom}, on t'aurait bien encouragé, mais même l'espoir a démissionné.","À ton enterrement, {nom}, on lancera des fléchettes sur ton cercueil. Et on le ratera, pour te rendre hommage.","{nom}, t'as deux mains et aucune des deux ne sert à rien.","Le jour où tu feras un bon tour, {nom}, on organisera une messe.","{nom}, même ton ombre a honte de te suivre.","C'est pas un tour, {nom}, c'est un avis de décès pour ta dignité.","{nom}, t'es la preuve vivante que l'évolution peut revenir en arrière.","Même ta mère a arrêté de regarder, {nom}.","{nom}, si t'étais un cheval, on t'aurait déjà abattu."];
 const HARSH_CHEERS = ["{nom}, ce tour est tellement violent que les autres devraient porter plainte.","Les autres, rédigez vos testaments : {nom} est en mode boucher.","{nom} massacre la cible comme si elle lui devait de l'argent.","Enfin un bon tour, {nom}. On commençait à te commander un cercueil.","{nom} vient de commettre un meurtre. La victime : votre fierté à tous.","Appelez la morgue, {nom} vient de défoncer tout le monde."];
 const HARSH_KILL = ["{a} a achevé {v} comme un vieux cheval. Personne n'a pleuré.","{v} est mort. Ses dernières paroles : je vais me refaire au prochain tour.","{a} vient de buter {v}. La police a classé l'affaire : c'était mérité.","{v} rejoint le cimetière des nuls. {a} a même pas eu besoin de viser.","Pas de minute de silence pour {v}. {a} a déjà oublié son nom."];
+/* Humour grivois : sous-entendus de comptoir, rien d'explicite. */
+const SPICY_TAUNTS = ["{nom}, trois coups, et la cible n'a rien senti.","{nom}, toujours à côté du trou, hein ? Comme d'habitude.","{nom}, éjaculateur précoce de la fléchette : lancé trop tôt, fini trop vite.","{nom}, tu lances comme tu dragues : à côté, et ça fait de la peine.","{nom}, trois tentatives, zéro pénétration. La cible reste vierge.","{nom}, t'arrives même pas à mettre la pointe dedans.","Pas de bol {nom}, la cible a la migraine ce soir.","{nom}, simuler, ça marche pas aux fléchettes.","{nom}, ta fléchette a fait comme toi en soirée : elle est restée sur le côté.","{nom}, c'est pas la taille de la fléchette qui compte... mais là, franchement.","{nom}, faut viser le milieu. Personne t'a jamais expliqué ?","{nom}, même dans le noir, on trouve mieux le trou que ça.","{nom}, panne de visée ? Ça arrive à tout le monde. Mais surtout à toi."];
+const SPICY_CHEERS = ["{nom}, en plein dans le mille ! La cible en redemande.","Oh {nom}, quelle pénétration ! Pardon : quelle précision.","{nom}, trois coups, trois fois au fond. Respect.","{nom}, la cible a eu un frisson.","{nom} a trouvé le point G de la cible : le bull.","{nom}, ça, c'est un lancer qui assure jusqu'au bout.","{nom}, la cible fume une cigarette après ce tour."];
 function joke(mood, nom){
+  if(SET.spicy && Math.random()<.22) return rnd(mood==='cheer' ? SPICY_CHEERS : SPICY_TAUNTS).replace(/\{nom\}/g, nom);
   if(SET.dark && Math.random()<(SET.brutal?.5:.3)){
     const pool = mood==='cheer' ? [...DARK_CHEERS, ...(SET.brutal?HARSH_CHEERS:[])] : [...DARK_TAUNTS, ...(SET.brutal?HARSH_TAUNTS:[])];
     return rnd(pool).replace(/\{nom\}/g, nom);
   }
   const L = G && MODE_LINES[G.mode] && MODE_LINES[G.mode][mood];
   if(L && Math.random()<.5){
-    const cible = G.mode==='shanghai' ? MODES.shanghai.tg(G, G.players[G.cur]) : G.mode==='bobs' ? (G.round<=20?'D'+G.round:'centre') : '';
+    const cible = G.mode==='shanghai' ? MODES.shanghai.tg(G) : G.mode==='bobs' ? (G.round<=20?'D'+G.round:'centre') : '';
     return rnd(L).replace(/\{nom\}/g, nom).replace(/\{cible\}/g, cible);
   }
   return mood==='cheer' ? praise(nom) : taunt(nom);
 }
-function react(kind, nom){
+/* Le leader qui craque, ou le joueur en série qui se rate. */
+const CHOKE_LINES = ["Ah, la petite chiasse du joueur français !","Ah, {nom} nous fait une Diniz !","Oh, le floppeur !","Mais c'est pas possible d'être nul comme ça !","Petite coulante pour {nom} !","{nom} s'est liquéfié !","Il était si bien parti... et {nom} a tout lâché.","Le melon de {nom} vient d'exploser.","Ah, la pression, {nom} ! Ça serre les fesses, hein ?","On commençait à y croire, {nom}. Erreur.","{nom} mène, {nom} panique, {nom} se chie dessus.","Le syndrome du Français qui mène : {nom} se saborde tout seul."];
+function leaderName(){
+  if(!G || G.players.length<2) return null;
+  const m=M(), rk=m.rank(G);
+  if(String(m.row(G,rk[0]).val)===String(m.row(G,rk[1]).val)) return null;
+  return rk[0].name;
+}
+function chokeCheck(p, kind){
+  const bad = kind==='bad'||kind==='zero'||kind==='bust';
+  const choke = bad && ((p.streak||0)>=2 || (G.leaderStart && G.leaderStart===p.name));
+  if(kind==='great'||kind==='good'||kind==='max') p.streak=(p.streak||0)+1; else if(bad) p.streak=0;
+  return choke && Math.random()<.75 ? rnd(CHOKE_LINES).replace(/\{nom\}/g, p.name) : null;
+}
+function react(kind, nom, forced){
   if(!kind) return;
   hush();
   const snd = {
@@ -1197,10 +1222,10 @@ function react(kind, nom){
   // La phrase affichée sous l'animation est la même que celle dite par la voix.
   // Parfois, sur un mauvais tour : un pet à la place de la voix.
   const funny = SET.on && SET.fart, rr=Math.random(), badTurn = kind==='bad'||kind==='zero'||kind==='bust', isBig=['max','win','shanghai','leg','end'].includes(kind);
-  const farting = funny && (kind==='bad'||kind==='zero') && rr<.25;
+  const farting = !forced && funny && (kind==='bad'||kind==='zero') && rr<.25;
   // Parfois, un bruit rigolo juste avant la vanne (pet, canard, chien, loup…).
   const intro = !farting && funny && !isBig && mood ? (badTurn ? (rr<.6 ? rnd(FX_TAUNT) : null) : (rr<.35 ? rnd(FX_CHEER) : null)) : null;
-  const line = farting ? fartLine(nom) : mood ? accentize(joke(mood, nom), nom, mood) : '';
+  const line = forced ? forced : farting ? fartLine(nom) : mood ? accentize(joke(mood, nom), nom, mood) : '';
   const spoken = {
     max:'Cent quatre-vingts !', great:line, good:line, bad:line, zero:line, bust:'Bust ! '+line,
     kill:`Au revoir ${nom} !`, leg:`Manche pour ${nom} !`, win:`Victoire de ${nom} !`,
@@ -1313,7 +1338,7 @@ function throwDart(d){
   save(); render();
   if(r.kill){ if(SET.fx===undefined || !SET.fx) reactRival(p.name, r.kill, true); else { react('kill', r.kill); reactRival(p.name, r.kill, true); } }
   else if(r.victim) reactRival(p.name, r.victim, false);
-  else if(G.turnDone && !G.rivalSaid) react(rateTurn(), p.name);
+  else if(G.turnDone && !G.rivalSaid){ const k=rateTurn(), ch=chokeCheck(p,k); react(ch && k==='bad' ? 'zero' : k, p.name, ch); }
 }
 function winLeg(p, shanghai){
   if(G.mode==='x01'){
@@ -1364,7 +1389,7 @@ function nextTurn(){
   if(ni===-1){ endGame(null); if(note) toast(note); return; }
   const n=G.players.length, pos=i=>(i-G.starter+n)%n;
   if(pos(ni)<=pos(G.cur)) G.round++;
-  G.cur=ni; G.darts=[]; G.turnDone=false; G.bust=false; G.turnHits=0; G.rivalSaid=false;
+  G.cur=ni; G.darts=[]; G.turnDone=false; G.bust=false; G.turnHits=0; G.rivalSaid=false; G.leaderStart=leaderName();
   const mr = M().maxRounds ? M().maxRounds(G) : 0;
   if(mr && G.round>mr){ G.round=mr; endGame(null); if(note) toast(note); return; }
   save(); render(); if(note) toast(note);
@@ -1403,6 +1428,7 @@ function homeHTML(){
       <div class="srow"><span><b>Bruits rigolos</b><small>Pets, canard, chien, loup… de temps en temps avant une vanne</small></span><button class="sw" role="switch" aria-checked="${SET.fart}" aria-label="Bruits de pet" data-a="tog" data-k="fart" ${SET.on?'':'disabled'}></button></div>
       <div class="srow"><span><b>Humour noir</b><small>Des vannes macabres de temps en temps (enterrements, Faucheuse…)</small></span><button class="sw" role="switch" aria-checked="${SET.dark}" aria-label="Humour noir" data-a="tog" data-k="dark"></button></div>
       <div class="srow"><span><b>Mode sans pitié</b><small>Humour noir plus méchant et plus fréquent. Entre potes uniquement.</small></span><button class="sw" role="switch" aria-checked="${SET.brutal}" aria-label="Mode sans pitié" data-a="tog" data-k="brutal" ${SET.dark?'':'disabled'}></button></div>
+      <div class="srow"><span><b>Humour grivois</b><small>Sous-entendus de comptoir. À couper devant un client.</small></span><button class="sw" role="switch" aria-checked="${SET.spicy}" aria-label="Humour grivois" data-a="tog" data-k="spicy"></button></div>
       <div class="srow"><span><b>Voix du commentateur</b><small>Une fois sur deux, la vanne est dite à voix haute à la place du bruit</small></span><button class="sw" role="switch" aria-checked="${SET.voice}" aria-label="Voix" data-a="tog" data-k="voice" ${SET.on?'':'disabled'}></button></div>
       <div class="tarea"><label for="ta-t">Phrases pour chambrer</label><textarea id="ta-t" data-k="taunts" rows="5">${esc(SET.taunts)}</textarea>
         <label for="ta-c">Phrases de félicitations</label><textarea id="ta-c" data-k="cheers" rows="4">${esc(SET.cheers)}</textarea>
@@ -1479,7 +1505,7 @@ function padHTML(){
   if(G.turnDone && !G.over){
     const ni=nextIdx(G.cur), tot=G.darts.reduce((a,d)=>a+val(d),0); const pointsMode=['x01','countup','shanghai','halve'].includes(G.mode);
     const nextName = ni>-1 ? G.players[ni].name : '';
-    const again = G.mode==='shanghai' && G.opts.rules!=='classic' && (G.players[G.cur].hits||0)>=3 && G.players[G.cur].t+1+(G.players[G.cur].tripled?2:0)<=G.opts.rounds+2;
+    const again = G.mode==='atc' && (G.players[G.cur].hits||0)>=3;
     const same = ni===G.cur || again;
     return `<div class="pad"><div class="done">
       <div class="sum${G.bust?' bust':''}">${G.bust?'Bust':pointsMode?tot:(G.turnHits||0)}<small>${G.bust?'Le tour ne compte pas':pointsMode?'points ce tour':G.mode==='cricket'?((G.turnHits||0)>1?'marques ce tour':'marque ce tour'):((G.turnHits||0)>1?'touches utiles':'touche utile')}</small></div>
